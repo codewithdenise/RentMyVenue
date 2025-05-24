@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import venueService from "../services/venueService";
+import type { VenueSearchFilters } from "../types";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -13,11 +14,11 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-export function useVenues(initialFilters = {}) {
+export function useVenues(initialFilters: VenueSearchFilters = {}) {
   const [venues, setVenues] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<any>(initialFilters);
+  const [filters, setFilters] = useState<VenueSearchFilters>(initialFilters);
   const [meta, setMeta] = useState({
     total: 0,
     page: 1,
@@ -25,7 +26,7 @@ export function useVenues(initialFilters = {}) {
     totalPages: 0,
   });
 
-  const fetchVenues = useCallback(async (filters) => {
+  const fetchVenues = useCallback(async (filters: VenueSearchFilters) => {
     setLoading(true);
     setError(null);
     try {
