@@ -20,7 +20,7 @@ import {
   Calendar,
   Star,
   Filter,
-  ChevronDown
+  ChevronDown,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -79,13 +79,23 @@ const VenueSearch: React.FC = () => {
     initialMinPrice ? parseInt(initialMinPrice) : 1000,
     initialMaxPrice ? parseInt(initialMaxPrice) : 50000,
   ]);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
+  const [selectedAmenities, setSelectedAmenities] =
+    useState<string[]>(initialAmenities);
 
   // List of available amenities
   const amenitiesList = [
-    "Wifi", "Parking", "Air Conditioning", "Swimming Pool",
-    "Kitchen", "Catering", "Sound System", "Decoration Services",
-    "Indoor Space", "Outdoor Space", "Seating Arrangement", "Bridal Room"
+    "Wifi",
+    "Parking",
+    "Air Conditioning",
+    "Swimming Pool",
+    "Kitchen",
+    "Catering",
+    "Sound System",
+    "Decoration Services",
+    "Indoor Space",
+    "Outdoor Space",
+    "Seating Arrangement",
+    "Bridal Room",
   ];
 
   // Fetch venues with initial search params
@@ -107,7 +117,11 @@ const VenueSearch: React.FC = () => {
       minPrice: initialMinPrice ? parseInt(initialMinPrice) : undefined,
       maxPrice: initialMaxPrice ? parseInt(initialMaxPrice) : undefined,
       amenities: initialAmenities.length > 0 ? initialAmenities : undefined,
-      sort: initialSort as "price_asc" | "price_desc" | "rating_desc" | "newest",
+      sort: initialSort as
+        | "price_asc"
+        | "price_desc"
+        | "rating_desc"
+        | "newest",
     },
     autoFetch: true,
   });
@@ -119,9 +133,12 @@ const VenueSearch: React.FC = () => {
     if (searchQuery) newParams.set("query", searchQuery);
     if (capacity) newParams.set("capacity", capacity);
     if (sortOption) newParams.set("sort", sortOption);
-    if (priceRange[0] > 1000) newParams.set("min_price", priceRange[0].toString());
-    if (priceRange[1] < 50000) newParams.set("max_price", priceRange[1].toString());
-    if (selectedAmenities.length > 0) newParams.set("amenities", selectedAmenities.join(","));
+    if (priceRange[0] > 1000)
+      newParams.set("min_price", priceRange[0].toString());
+    if (priceRange[1] < 50000)
+      newParams.set("max_price", priceRange[1].toString());
+    if (selectedAmenities.length > 0)
+      newParams.set("amenities", selectedAmenities.join(","));
 
     setSearchParams(newParams);
 
@@ -154,19 +171,19 @@ const VenueSearch: React.FC = () => {
 
   // Toggle amenity selection
   const toggleAmenity = (amenity: string) => {
-    setSelectedAmenities(prev =>
+    setSelectedAmenities((prev) =>
       prev.includes(amenity)
-        ? prev.filter(a => a !== amenity)
-        : [...prev, amenity]
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity],
     );
   };
 
   // Format price to Indian Rupees
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
     }).format(price);
   };
 
@@ -174,7 +191,9 @@ const VenueSearch: React.FC = () => {
     <div className="container mx-auto py-8">
       {/* Search Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Find Your Perfect Wedding Venue</h1>
+        <h1 className="text-3xl font-bold mb-4">
+          Find Your Perfect Wedding Venue
+        </h1>
         <p className="text-muted-foreground mb-6">
           Browse through our collection of beautiful venues for your special day
         </p>
@@ -234,7 +253,9 @@ const VenueSearch: React.FC = () => {
                           max={50000}
                           step={1000}
                           value={priceRange}
-                          onValueChange={(value) => setPriceRange(value as [number, number])}
+                          onValueChange={(value) =>
+                            setPriceRange(value as [number, number])
+                          }
                           className="mb-2"
                         />
                         <div className="flex justify-between text-sm">
@@ -252,8 +273,12 @@ const VenueSearch: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="rating_desc">Top Rated</SelectItem>
-                          <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                          <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                          <SelectItem value="price_asc">
+                            Price: Low to High
+                          </SelectItem>
+                          <SelectItem value="price_desc">
+                            Price: High to Low
+                          </SelectItem>
                           <SelectItem value="newest">Newest First</SelectItem>
                         </SelectContent>
                       </Select>
@@ -263,7 +288,10 @@ const VenueSearch: React.FC = () => {
                       <h3 className="font-medium mb-2">Amenities</h3>
                       <div className="space-y-2">
                         {amenitiesList.map((amenity) => (
-                          <div key={amenity} className="flex items-center space-x-2">
+                          <div
+                            key={amenity}
+                            className="flex items-center space-x-2"
+                          >
                             <Checkbox
                               id={`mobile-${amenity}`}
                               checked={selectedAmenities.includes(amenity)}
@@ -356,7 +384,9 @@ const VenueSearch: React.FC = () => {
                       max={50000}
                       step={1000}
                       value={priceRange}
-                      onValueChange={(value) => setPriceRange(value as [number, number])}
+                      onValueChange={(value) =>
+                        setPriceRange(value as [number, number])
+                      }
                       className="mb-2"
                     />
                     <div className="flex justify-between text-sm">
@@ -382,7 +412,10 @@ const VenueSearch: React.FC = () => {
                 <AccordionContent>
                   <div className="space-y-2">
                     {amenitiesList.map((amenity) => (
-                      <div key={amenity} className="flex items-center space-x-2">
+                      <div
+                        key={amenity}
+                        className="flex items-center space-x-2"
+                      >
                         <Checkbox
                           id={amenity}
                           checked={selectedAmenities.includes(amenity)}
@@ -437,13 +470,13 @@ const VenueSearch: React.FC = () => {
             </div>
           ) : venues.length === 0 ? (
             <div className="text-center py-12 bg-muted rounded-lg">
-              <p className="text-lg mb-2">No venues found matching your criteria</p>
+              <p className="text-lg mb-2">
+                No venues found matching your criteria
+              </p>
               <p className="text-muted-foreground mb-4">
                 Try adjusting your filters or search terms
               </p>
-              <Button onClick={handleClearFilters}>
-                Clear Filters
-              </Button>
+              <Button onClick={handleClearFilters}>Clear Filters</Button>
             </div>
           ) : (
             <>
@@ -478,7 +511,7 @@ const VenueSearch: React.FC = () => {
             </>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -515,7 +548,9 @@ const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
           {venue.rating && (
             <div className="flex items-center">
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-              <span className="text-sm font-medium">{venue.rating.toFixed(1)}</span>
+              <span className="text-sm font-medium">
+                {venue.rating.toFixed(1)}
+              </span>
             </div>
           )}
         </div>
