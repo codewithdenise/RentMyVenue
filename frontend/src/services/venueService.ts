@@ -40,6 +40,20 @@ const venueService = {
       throw new Error(error.message || "Failed to fetch venues");
     }
   },
+
+  // Get featured venues
+  // Get featured venues
+// Get featured venues
+getFeaturedVenues: async (): Promise<ApiResponse<any[]>> => {
+  try {
+    const response = await api.get<any[]>('/api/featured-venues/');
+    return response;
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to fetch featured venues");
+  }
+},
+
+  
 };
 
 export default venueService;

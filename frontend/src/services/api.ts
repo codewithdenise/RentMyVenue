@@ -5,12 +5,20 @@
  * For this implementation, we'll use mock data and simulate API calls.
  */
 
-import { ApiResponse } from "@/types";
+import type { ApiResponse } from "../types";
+import axios from 'axios';
 
 // Base API configuration
 const API_URL =
-  import.meta.env.VITE_API_URL || "https://api.rentmyvenue.example";
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const API_TIMEOUT = 5000; // 5 seconds
+
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // Error types
 export class ApiError extends Error {

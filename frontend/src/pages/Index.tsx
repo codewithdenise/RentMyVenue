@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Users, MapPin } from "lucide-react";
+import venueService from "@/services/venueService";
 
 const Index = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [capacity, setCapacity] = useState<string>("");
+
+  const [featuredVenues, setFeaturedVenues] = useState<any[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(false);
+  const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,33 +25,29 @@ const Index = () => {
     navigate(`/venues${params.toString() ? "?" + params.toString() : ""}`);
   };
 
-  // Featured venues
-  const featuredVenues = [
-    {
-      name: "Green Valley Farm",
-      location: "Coimbatore, Tamil Nadu",
-      image:
-        "https://source.unsplash.com/random/600x400/?rural,wedding,venue,farm&sig=1",
-      capacity: 250,
-      price: 75000,
-    },
-    {
-      name: "Lakeside Manor",
-      location: "Shimla, Himachal Pradesh",
-      image:
-        "https://source.unsplash.com/random/600x400/?rural,wedding,venue,lake&sig=2",
-      capacity: 150,
-      price: 60000,
-    },
-    {
-      name: "Heritage Garden",
-      location: "Jaipur, Rajasthan",
-      image:
-        "https://source.unsplash.com/random/600x400/?rural,wedding,venue,garden&sig=3",
-      capacity: 400,
-      price: 90000,
-    },
-  ];
+  useEffect(() => {
+    const fetchFeaturedVenues = async () => {
+      setLoadingFeatured(true);
+      setErrorFeatured(null);
+      try {
+        const response = await venueService.getFeaturedVenues();
+        // Ensure response is an array before setting state
+        if (response && Array.isArray(response)) {
+          setFeaturedVenues(response);
+        } else {
+          setFeaturedVenues([]);
+          setErrorFeatured("Invalid data format received for featured venues");
+        }
+      } catch (error: any) {
+        setErrorFeatured(error.message || "Failed to load featured venues");
+        setFeaturedVenues([]);
+      } finally {
+        setLoadingFeatured(false);
+      }
+    };
+
+    fetchFeaturedVenues();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -111,12 +112,15 @@ const Index = () => {
             </p>
           </div>
 
+          {loadingFeatured && <p>Loading featured venues...</p>}
+          {errorFeatured && <p className="text-red-600">{errorFeatured}</p>}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Featured Venue Cards */}
             {featuredVenues.map((venue, i) => (
               <Card key={i} className="overflow-hidden border">
                 <img
-                  src={venue.image}
+                  src={venue.cover_image?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
                   alt={venue.name}
                   className="w-full h-48 object-cover"
                   onError={(e) => {
@@ -129,7 +133,7 @@ const Index = () => {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-xl font-bold">{venue.name}</h3>
                     <div className="text-lg font-semibold">
-                      ₹{venue.price.toLocaleString("en-IN")}
+                      ₹{venue.price?.toLocaleString("en-IN") || "N/A"}
                       <span className="text-sm text-muted-foreground">
                         /day
                       </span>
@@ -137,16 +141,16 @@ const Index = () => {
                   </div>
                   <div className="flex items-center text-muted-foreground text-sm mb-4">
                     <MapPin className="mr-1 h-4 w-4" />
-                    {venue.location}
+                    {venue.location || `${venue.district?.name}, ${venue.state?.name}`}
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center bg-accent px-2 py-1 rounded">
                       <Users className="mr-1 h-4 w-4 text-accent-foreground" />
                       <span className="text-sm">
-                        Up to {venue.capacity} guests
+                        Up to {venue.capacity || "N/A"} guests
                       </span>
                     </div>
-                    <Link to="/venues">
+                    <Link to={`/venues/${venue.id}`}>
                       <Button variant="outline" size="sm">
                         View Details
                       </Button>

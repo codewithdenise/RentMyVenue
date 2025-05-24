@@ -4,6 +4,8 @@ from .views import (
     PublicVenueViewSet, CategoryViewSet, StateViewSet, DistrictViewSet, TehsilViewSet,
     AmenityViewSet, VendorVenueViewSet, AdminVenueViewSet, ImageUploadViewSet, AuditLogViewSet
 )
+from .views import FeaturedVenueListView
+
 
 router = DefaultRouter()
 router.register(r'venues', PublicVenueViewSet, basename='public-venues')
@@ -19,4 +21,6 @@ router.register(r'auditlogs', AuditLogViewSet, basename='auditlogs')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('featured-venues/', FeaturedVenueListView.as_view(), name='featured-venues'),
+
 ]
