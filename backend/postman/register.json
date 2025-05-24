@@ -1,0 +1,40 @@
+{
+  "info": {
+    "name": "Register User",
+    "_postman_id": "register-unique-id",
+    "description": "Register a new user with email and password",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"hardiksaraf18@gmail.com\",\n  \"password\": \"StrongPass123!\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/register/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "accounts",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

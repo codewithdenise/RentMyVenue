@@ -1,0 +1,167 @@
+{
+  "info": {
+    "_postman_id": "vendor-venues-api-001",
+    "name": "Vendor Venues API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Vendor API endpoints for managing own venues, including login and CRUD operations."
+  },
+  "item": [
+    {
+      "name": "Vendor Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"vendoruser\",\n  \"password\": \"vendorpassword\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login/",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "List Own Venues",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues"]
+        }
+      }
+    },
+    {
+      "name": "Create Venue (Draft)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Venue\",\n  \"category\": 1,\n  \"tehsil\": 1,\n  \"address_line\": \"123 Test Street\",\n  \"pincode\": \"123456\",\n  \"capacity\": 200,\n  \"is_ac\": true,\n  \"indoor_outdoor\": \"both\",\n  \"amenities\": [1, 2],\n  \"description\": \"A test venue for API testing.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues"]
+        }
+      }
+    },
+    {
+      "name": "Update Venue",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated description for API test.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues", "1"]
+        }
+      }
+    },
+    {
+      "name": "Submit Venue for Approval",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues/1/submit",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues", "1", "submit"]
+        }
+      }
+    },
+    {
+      "name": "Unlist Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues/1/unlist",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues", "1", "unlist"]
+        }
+      }
+    },
+    {
+      "name": "Relist Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues/1/relist",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues", "1", "relist"]
+        }
+      }
+    },
+    {
+      "name": "Delete (Archive) Venue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{vendor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/vendor/venues/1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "vendor", "venues", "1"]
+        }
+      }
+    }
+  ],
+  "event": []
+}

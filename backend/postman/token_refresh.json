@@ -1,0 +1,41 @@
+{
+  "info": {
+    "name": "Token Refresh",
+    "_postman_id": "token-refresh-unique-id",
+    "description": "Refresh JWT access token using refresh token",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2NTU2Nzk0LCJpYXQiOjE3NDY1NTU4OTQsImp0aSI6IjEyODMxOGJiM2UyZjRmZmU4Yjg5M2ZhNWRhNzAwMzcxIiwidXNlcl9pZCI6Mn0.-z_UZPkpJcgRlDCfcWKvogJIgsDVf5pM4DWc96oqgv0\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/token/refresh/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "accounts",
+            "token",
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
