@@ -1,4 +1,4 @@
-djangofrom rest_framework import serializers
+from rest_framework import serializers
 from .models import Venue, Category, Image, Amenity, State, District, Tehsil, AuditLog
 
 class StateSerializer(serializers.ModelSerializer):

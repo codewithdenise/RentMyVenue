@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useVenue } from "@/hooks/useVenues";
+import { useVenues } from "@/hooks/useVenues";
 import {
   Calendar,
   MapPin,

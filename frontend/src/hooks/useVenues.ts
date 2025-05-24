@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import venueService from "../services/venueServiceNew";
+import venueService from "../services/venueService";
 
 interface ApiResponse<T> {
   success: boolean;
