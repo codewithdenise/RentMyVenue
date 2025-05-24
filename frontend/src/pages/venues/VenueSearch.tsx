@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { useVenues } from "@/hooks/useVenues";
 import { Venue } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -12,18 +12,81 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Search, Users, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import {
+  Loader2,
+  Search,
+  Users,
+  MapPin,
+  Calendar,
+  Star,
+  Filter,
+  ChevronDown
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { VenueCapacityFilter } from "@/components/venues/VenueCapacityFilter";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+
+// Placeholder venue cards for loading state
+const VenueCardSkeleton = () => (
+  <Card className="overflow-hidden h-full flex flex-col">
+    <Skeleton className="h-52 w-full" />
+    <CardContent className="py-4 flex-grow">
+      <Skeleton className="h-6 w-3/4 mb-1" />
+      <Skeleton className="h-4 w-1/2 mb-3" />
+      <Skeleton className="h-8 w-1/3 rounded-lg mb-3" />
+      <Skeleton className="h-4 w-full mb-1" />
+      <Skeleton className="h-4 w-4/5" />
+    </CardContent>
+    <CardFooter className="pt-0 flex justify-between items-center border-t pt-3">
+      <Skeleton className="h-6 w-1/3" />
+      <Skeleton className="h-9 w-24 rounded-md" />
+    </CardFooter>
+  </Card>
+);
 
 const VenueSearch: React.FC = () => {
   // Get search params from URL
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("query") || "";
   const initialCapacity = searchParams.get("capacity") || "";
+  const initialSort = searchParams.get("sort") || "rating_desc";
+  const initialMinPrice = searchParams.get("min_price") || "";
+  const initialMaxPrice = searchParams.get("max_price") || "";
+  const initialAmenities = searchParams.get("amenities")?.split(",") || [];
 
   // State for filters
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [capacity, setCapacity] = useState(initialCapacity);
+  const [sortOption, setSortOption] = useState(initialSort);
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    initialMinPrice ? parseInt(initialMinPrice) : 1000,
+    initialMaxPrice ? parseInt(initialMaxPrice) : 50000,
+  ]);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
+
+  // List of available amenities
+  const amenitiesList = [
+    "Wifi", "Parking", "Air Conditioning", "Swimming Pool",
+    "Kitchen", "Catering", "Sound System", "Decoration Services",
+    "Indoor Space", "Outdoor Space", "Seating Arrangement", "Bridal Room"
+  ];
 
   // Fetch venues with initial search params
   const {
@@ -41,7 +104,10 @@ const VenueSearch: React.FC = () => {
       limit: 9,
       query: initialQuery || undefined,
       minCapacity: initialCapacity ? parseInt(initialCapacity) : undefined,
-      sort: "rating_desc",
+      minPrice: initialMinPrice ? parseInt(initialMinPrice) : undefined,
+      maxPrice: initialMaxPrice ? parseInt(initialMaxPrice) : undefined,
+      amenities: initialAmenities.length > 0 ? initialAmenities : undefined,
+      sort: initialSort as "price_asc" | "price_desc" | "rating_desc" | "newest",
     },
     autoFetch: true,
   });
@@ -52,23 +118,65 @@ const VenueSearch: React.FC = () => {
     const newParams = new URLSearchParams();
     if (searchQuery) newParams.set("query", searchQuery);
     if (capacity) newParams.set("capacity", capacity);
+    if (sortOption) newParams.set("sort", sortOption);
+    if (priceRange[0] > 1000) newParams.set("min_price", priceRange[0].toString());
+    if (priceRange[1] < 50000) newParams.set("max_price", priceRange[1].toString());
+    if (selectedAmenities.length > 0) newParams.set("amenities", selectedAmenities.join(","));
+
     setSearchParams(newParams);
 
     // Update venues filter
     setFilters({
       query: searchQuery || undefined,
       minCapacity: capacity ? parseInt(capacity) : undefined,
+      minPrice: priceRange[0] > 1000 ? priceRange[0] : undefined,
+      maxPrice: priceRange[1] < 50000 ? priceRange[1] : undefined,
+      amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+      sort: sortOption as "price_asc" | "price_desc" | "rating_desc" | "newest",
       page: 1,
     });
+  };
+
+  // Handle clear filters
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setCapacity("");
+    setSortOption("rating_desc");
+    setPriceRange([1000, 50000]);
+    setSelectedAmenities([]);
+    setSearchParams({});
+    setFilters({
+      limit: 9,
+      page: 1,
+      sort: "rating_desc",
+    });
+  };
+
+  // Toggle amenity selection
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities(prev =>
+      prev.includes(amenity)
+        ? prev.filter(a => a !== amenity)
+        : [...prev, amenity]
+    );
+  };
+
+  // Format price to Indian Rupees
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(price);
   };
 
   return (
     <div className="container mx-auto py-8">
       {/* Search Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Find Your Wedding Venue</h1>
+        <h1 className="text-3xl font-bold mb-4">Find Your Perfect Wedding Venue</h1>
         <p className="text-muted-foreground mb-6">
-          Discover venues that will accommodate all your wedding guests
+          Browse through our collection of beautiful venues for your special day
         </p>
 
         {/* Search Bar */}
@@ -77,7 +185,7 @@ const VenueSearch: React.FC = () => {
             {/* Search Input */}
             <div className="md:col-span-5">
               <Input
-                placeholder="Search venues"
+                placeholder="Search venues, locations, etc."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -85,7 +193,7 @@ const VenueSearch: React.FC = () => {
             </div>
 
             {/* Capacity Select */}
-            <div className="md:col-span-5">
+            <div className="md:col-span-3">
               <Select value={capacity} onValueChange={setCapacity}>
                 <SelectTrigger>
                   <SelectValue placeholder="Guest Capacity" />
@@ -97,6 +205,107 @@ const VenueSearch: React.FC = () => {
                   <SelectItem value="200">200+ guests</SelectItem>
                   <SelectItem value="300">300+ guests</SelectItem>
                   <SelectItem value="500">500+ guests</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filter Button (Mobile) */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Filter className="mr-2 h-4 w-4" /> Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[85vh]">
+                  <SheetHeader>
+                    <SheetTitle>Filter Venues</SheetTitle>
+                    <SheetDescription>
+                      Refine your search with these filters
+                    </SheetDescription>
+                  </SheetHeader>
+
+                  <div className="py-4 space-y-6">
+                    <div>
+                      <h3 className="font-medium mb-2">Price Range</h3>
+                      <div className="px-2">
+                        <Slider
+                          min={1000}
+                          max={50000}
+                          step={1000}
+                          value={priceRange}
+                          onValueChange={(value) => setPriceRange(value as [number, number])}
+                          className="mb-2"
+                        />
+                        <div className="flex justify-between text-sm">
+                          <span>{formatPrice(priceRange[0])}</span>
+                          <span>{formatPrice(priceRange[1])}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="font-medium mb-2">Sort By</h3>
+                      <Select value={sortOption} onValueChange={setSortOption}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="rating_desc">Top Rated</SelectItem>
+                          <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                          <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                          <SelectItem value="newest">Newest First</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <h3 className="font-medium mb-2">Amenities</h3>
+                      <div className="space-y-2">
+                        {amenitiesList.map((amenity) => (
+                          <div key={amenity} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`mobile-${amenity}`}
+                              checked={selectedAmenities.includes(amenity)}
+                              onCheckedChange={() => toggleAmenity(amenity)}
+                            />
+                            <label
+                              htmlFor={`mobile-${amenity}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {amenity}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <SheetFooter>
+                    <SheetClose asChild>
+                      <Button variant="outline" onClick={handleClearFilters}>
+                        Clear Filters
+                      </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button onClick={handleSearch}>Apply Filters</Button>
+                    </SheetClose>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Sort By (Desktop) */}
+            <div className="hidden md:block md:col-span-2">
+              <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating_desc">Top Rated</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -120,88 +329,164 @@ const VenueSearch: React.FC = () => {
         </div>
       </div>
 
-      {/* Results Count */}
-      <div className="mb-6">
-        <p className="text-muted-foreground">
-          {isLoading
-            ? "Loading venues..."
-            : `Showing ${venues.length} of ${totalVenues} venues`}
-          {capacity ? ` with ${capacity}+ guests capacity` : ""}
-        </p>
-      </div>
-
-      {/* Results Grid */}
-      {error ? (
-        <div className="text-center py-12 bg-muted rounded-lg">
-          <p className="text-destructive text-lg">
-            Error loading venues. Please try again.
-          </p>
-          <Button onClick={() => window.location.reload()} className="mt-4">
-            Refresh Page
-          </Button>
-        </div>
-      ) : isLoading && venues.length === 0 ? (
-        <div className="text-center py-12 bg-muted rounded-lg">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading venues...</p>
-        </div>
-      ) : venues.length === 0 ? (
-        <div className="text-center py-12 bg-muted rounded-lg">
-          <p className="text-lg mb-2">No venues found matching your criteria</p>
-          <p className="text-muted-foreground mb-4">
-            Try adjusting your filters or search terms
-          </p>
-          <Button
-            onClick={() => {
-              setSearchQuery("");
-              setCapacity("");
-              setSearchParams({});
-              setFilters({});
-            }}
-          >
-            Clear Filters
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {venues.map((venue: Venue) => (
-              <VenueCard key={venue.id} venue={venue} />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-8 gap-2">
+      {/* Main Content Area with Filters and Results */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Filters Sidebar (Desktop Only) */}
+        <div className="hidden lg:block">
+          <div className="bg-card rounded-lg p-5 shadow-sm sticky top-24">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Filters</h2>
               <Button
-                variant="outline"
-                onClick={fetchPreviousPage}
-                disabled={currentPage <= 1 || isLoading}
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="text-muted-foreground text-sm"
               >
-                Previous
-              </Button>
-              <span className="flex items-center px-4">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                onClick={fetchNextPage}
-                disabled={currentPage >= totalPages || isLoading}
-              >
-                Next
+                Clear All
               </Button>
             </div>
+
+            <Accordion type="single" collapsible className="space-y-2">
+              <AccordionItem value="price">
+                <AccordionTrigger>Price Range</AccordionTrigger>
+                <AccordionContent>
+                  <div className="px-2">
+                    <Slider
+                      min={1000}
+                      max={50000}
+                      step={1000}
+                      value={priceRange}
+                      onValueChange={(value) => setPriceRange(value as [number, number])}
+                      className="mb-2"
+                    />
+                    <div className="flex justify-between text-sm">
+                      <span>{formatPrice(priceRange[0])}</span>
+                      <span>{formatPrice(priceRange[1])}</span>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="capacity">
+                <AccordionTrigger>Guest Capacity</AccordionTrigger>
+                <AccordionContent>
+                  <VenueCapacityFilter
+                    selectedCapacity={capacity}
+                    onChange={setCapacity}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="amenities">
+                <AccordionTrigger>Amenities</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2">
+                    {amenitiesList.map((amenity) => (
+                      <div key={amenity} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={amenity}
+                          checked={selectedAmenities.includes(amenity)}
+                          onCheckedChange={() => toggleAmenity(amenity)}
+                        />
+                        <label
+                          htmlFor={amenity}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {amenity}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <Button className="w-full mt-4" onClick={handleSearch}>
+              Apply Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Results Column */}
+        <div className="lg:col-span-3">
+          {/* Results Count */}
+          <div className="mb-6 flex justify-between items-center">
+            <p className="text-muted-foreground">
+              {isLoading
+                ? "Loading venues..."
+                : `Showing ${venues.length} of ${totalVenues} venues`}
+              {capacity ? ` with ${capacity}+ guests capacity` : ""}
+            </p>
+          </div>
+
+          {/* Results Grid */}
+          {error ? (
+            <div className="text-center py-12 bg-muted rounded-lg">
+              <p className="text-destructive text-lg">
+                Error loading venues. Please try again.
+              </p>
+              <Button onClick={() => window.location.reload()} className="mt-4">
+                Refresh Page
+              </Button>
+            </div>
+          ) : isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, index) => (
+                <VenueCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : venues.length === 0 ? (
+            <div className="text-center py-12 bg-muted rounded-lg">
+              <p className="text-lg mb-2">No venues found matching your criteria</p>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your filters or search terms
+              </p>
+              <Button onClick={handleClearFilters}>
+                Clear Filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {venues.map((venue: Venue) => (
+                  <VenueCard key={venue.id} venue={venue} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={fetchPreviousPage}
+                    disabled={currentPage <= 1 || isLoading}
+                  >
+                    Previous
+                  </Button>
+                  <span className="flex items-center px-4">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={fetchNextPage}
+                    disabled={currentPage >= totalPages || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
 };
 
-// Venue Card Component
+// Venue Card Component with enhanced design
 const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
+    <Card className="overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         <img
           src={
@@ -209,37 +494,63 @@ const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
             "https://source.unsplash.com/random/600x400/?venue,wedding"
           }
           alt={venue.name}
-          className="h-52 w-full object-cover"
+          className="h-52 w-full object-cover transition-transform duration-300 hover:scale-105"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src =
               "https://source.unsplash.com/random/600x400/?venue,wedding";
           }}
         />
+        {venue.categories && venue.categories.length > 0 && (
+          <div className="absolute top-3 left-3">
+            <span className="bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded-full">
+              {venue.categories[0]}
+            </span>
+          </div>
+        )}
       </div>
       <CardContent className="py-4 flex-grow">
-        <h3 className="text-xl font-bold mb-1">{venue.name}</h3>
-        <div className="flex items-center text-muted-foreground text-sm mb-3">
-          <MapPin className="h-4 w-4 mr-1" />
-          {venue.address.city}, {venue.address.state}
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-xl font-bold">{venue.name}</h3>
+          {venue.rating && (
+            <div className="flex items-center">
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+              <span className="text-sm font-medium">{venue.rating.toFixed(1)}</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-1 mb-3 bg-muted/50 p-2 rounded-lg">
-          <Users className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">
-            Up to {venue.capacity.max} guests
-          </span>
+        <div className="flex items-center text-muted-foreground text-sm mb-3">
+          <MapPin className="h-4 w-4 mr-1" />
+          {venue.address?.city || "City"}, {venue.address?.state || "State"}
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md">
+            <Users className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">
+              Up to {venue.capacity?.max || venue.capacity || 100} guests
+            </span>
+          </div>
+
+          {venue.amenities && venue.amenities.length > 0 && (
+            <div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Available</span>
+            </div>
+          )}
         </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2">
           {venue.shortDescription ||
-            venue.description.substring(0, 120) + "..."}
+            venue.description?.substring(0, 120) + "..." ||
+            "A beautiful venue perfect for your special occasion. Contact for more details."}
         </p>
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-3">
         <div className="text-lg font-semibold">
-          ₹{venue.pricePerDay.toLocaleString("en-IN")}
+          ₹{(venue.pricePerDay || venue.price || 25000).toLocaleString("en-IN")}
           <span className="text-sm text-muted-foreground">/day</span>
         </div>
         <Link to={`/venues/${venue.id}`}>

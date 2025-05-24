@@ -18,8 +18,10 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 // Main Pages
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
-import VenueSearch from "@/pages/venues/VenueSearch"; // Fallback to the original if rural version fails
+import VenueSearch from "@/pages/venues/VenueSearch";
 import VenueDetails from "@/pages/venues/VenueDetails";
+import VenueBooking from "@/pages/venues/VenueBooking";
+import BookingConfirmation from "@/pages/venues/BookingConfirmation";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -74,6 +76,11 @@ const App = () => {
                           openAuthModal={(type) => setAuthModalOpen(type)}
                         />
                       }
+                    />
+                    <Route path="/venues/:id/book" element={<VenueBooking />} />
+                    <Route
+                      path="/booking/confirmation/:id"
+                      element={<BookingConfirmation />}
                     />
                     <Route
                       path="/how-it-works"
