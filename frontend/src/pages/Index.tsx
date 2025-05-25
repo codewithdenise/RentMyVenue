@@ -113,11 +113,12 @@ const Index = () => {
         <div className="container relative z-10 mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl font-bold mb-6">
-              Find Your Perfect Wedding Venue
+              Get Your Perfect Wedding Venue
             </h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Discover beautiful venues that can accommodate your wedding guests
+              Explore beautiful venues that can host your wedding guests
             </p>
+
 
             {/* Search Box */}
             <div className="max-w-7xl mx-auto">
