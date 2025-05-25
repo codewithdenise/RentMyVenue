@@ -3,30 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Users, MapPin, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { Search, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import venueService from "@/services/venueService";
 import { Venue } from "@/types";
-
-
-
 
 const Index = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [capacity, setCapacity] = useState<string>("");
-  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
-  const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [openFromDate, setOpenFromDate] = useState(false);
-  const [openToDate, setOpenToDate] = useState(false);
 
   const [featuredVenues, setFeaturedVenues] = useState<Venue[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(false);
   const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
-
-
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,13 +22,9 @@ const Index = () => {
     const params = new URLSearchParams();
     if (location) params.append("query", location);
     if (capacity) params.append("capacity", capacity);
-    if (fromDate) params.append("from_date", fromDate.toISOString().split('T')[0]);
-    if (toDate) params.append("to_date", toDate.toISOString().split('T')[0]);
 
     navigate(`/venues${params.toString() ? "?" + params.toString() : ""}`);
   };
-
-
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -69,8 +53,6 @@ const Index = () => {
 
     fetchFeaturedVenues();
   }, []);
-
-
 
   useEffect(() => {
     const checkScroll = () => {
@@ -105,7 +87,6 @@ const Index = () => {
     }
   };
 
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -118,7 +99,6 @@ const Index = () => {
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Explore beautiful venues that can host your wedding guests
             </p>
-
 
             {/* Search Box */}
             <div className="max-w-7xl mx-auto">
@@ -139,61 +119,6 @@ const Index = () => {
                       onChange={(e) => setLocation(e.target.value)}
                     />
                   </div>
-                </div>
-
-                {/* From Date */}
-                <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <Popover open={openFromDate} onOpenChange={setOpenFromDate}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full md:w-48 justify-start text-left font-normal h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
-                      >
-                        <Calendar className="mr-2 h-5 w-5 text-gray-400" />
-                        {fromDate ? format(fromDate, "PPP") : <span>Check-In</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={fromDate}
-                        onSelect={(date) => {
-                          setFromDate(date);
-                          setOpenFromDate(false);
-                        }}
-                        initialFocus
-                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* To Date */}
-                <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <Popover open={openToDate} onOpenChange={setOpenToDate}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full md:w-48 justify-start text-left font-normal h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
-                        disabled={!fromDate}
-                      >
-                        <Calendar className="mr-2 h-5 w-5 text-gray-400" />
-                        {toDate ? format(toDate, "PPP") : <span>Check-Out</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={toDate}
-                        onSelect={(date) => {
-                          setToDate(date);
-                          setOpenToDate(false);
-                        }}
-                        initialFocus
-                        disabled={(date) => !fromDate || date < fromDate}
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
 
                 {/* Number of Guests */}
