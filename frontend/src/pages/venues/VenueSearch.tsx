@@ -296,10 +296,10 @@ const VenueSearch: React.FC = () => {
         </p>
 
         {/* Search Bar */}
-        <div className="bg-card shadow rounded-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="bg-card shadow rounded-lg p-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             {/* Search Input */}
-            <div className="md:col-span-5">
+            <div className="md:col-span-4">
               <Input
                 placeholder="Search venues, locations, etc."
                 value={searchQuery}
@@ -314,9 +314,9 @@ const VenueSearch: React.FC = () => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal text-sm"
                   >
-                    <Calendar className="mr-2 h-4 w-4" />
+                    <Calendar className="mr-1 h-3 w-3" />
                     {fromDate ? format(fromDate, "PPP") : <span>From Date</span>}
                   </Button>
                 </PopoverTrigger>
@@ -341,10 +341,10 @@ const VenueSearch: React.FC = () => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal text-sm"
                     disabled={!fromDate}
                   >
-                    <Calendar className="mr-2 h-4 w-4" />
+                    <Calendar className="mr-1 h-3 w-3" />
                     {toDate ? format(toDate, "PPP") : <span>To Date</span>}
                   </Button>
                 </PopoverTrigger>
@@ -364,9 +364,9 @@ const VenueSearch: React.FC = () => {
             </div>
 
             {/* Capacity Select */}
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <Select value={capacity} onValueChange={setCapacity}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Guest Capacity" />
                 </SelectTrigger>
                 <SelectContent>
@@ -379,6 +379,7 @@ const VenueSearch: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+
 
             {/* Filter Button (Mobile) */}
             <div className="md:hidden">
@@ -476,9 +477,9 @@ const VenueSearch: React.FC = () => {
             </div>
 
             {/* Sort By (Desktop) */}
-            <div className="hidden md:block md:col-span-3">
+            <div className="hidden md:block md:col-span-1">
               <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -491,20 +492,22 @@ const VenueSearch: React.FC = () => {
             </div>
 
             {/* Search Button */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <Button
                 className="w-full"
+                size="sm"
                 onClick={handleSearch}
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                 ) : (
-                  <Search className="mr-2 h-4 w-4" />
+                  <Search className="mr-1 h-3 w-3" />
                 )}
                 Search
               </Button>
             </div>
+
 
 
           </div>
