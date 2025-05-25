@@ -120,21 +120,19 @@ const Index = () => {
             </p>
 
             {/* Search Box */}
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <form
                 onSubmit={handleSearch}
                 className="flex flex-col md:flex-row gap-4 bg-white p-6 rounded-xl shadow-md items-center"
               >
                 {/* Location */}
                 <div className="flex flex-col flex-grow min-w-[220px]">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    City, Property Name Or Location
-                  </label>
                   <div className="relative flex-grow">
-                    <MapPin className="absolute left-3 top-10 h-5 w-5 text-gray-400" />
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+
                     <Input
                       type="text"
-                      placeholder="Location (District, State)"
+                      placeholder="Location (Tehsil, District, State)"
                       className="pl-10 w-full h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
@@ -144,9 +142,6 @@ const Index = () => {
 
                 {/* From Date */}
                 <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Check-In
-                  </label>
                   <Popover open={openFromDate} onOpenChange={setOpenFromDate}>
                     <PopoverTrigger asChild>
                       <Button
@@ -174,9 +169,6 @@ const Index = () => {
 
                 {/* To Date */}
                 <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Check-Out
-                  </label>
                   <Popover open={openToDate} onOpenChange={setOpenToDate}>
                     <PopoverTrigger asChild>
                       <Button
@@ -205,9 +197,6 @@ const Index = () => {
 
                 {/* Number of Guests */}
                 <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Rooms & Guests
-                  </label>
                   <div className="relative">
                     <Users className="absolute left-3 top-10 h-5 w-5 text-gray-400" />
                     <select
