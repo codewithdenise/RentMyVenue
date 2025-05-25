@@ -15,7 +15,7 @@ export interface User {
 export interface Venue {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   description: string;
   shortDescription: string;
   address: {
@@ -24,8 +24,10 @@ export interface Venue {
     state: string;
     zipCode: string;
     country: string;
-    latitude?: number;
-    longitude?: number;
+  };
+  location?: {
+    lat: number;
+    lng: number;
   };
   capacity: {
     min: number;
@@ -33,26 +35,32 @@ export interface Venue {
   };
   amenities: string[];
   categories: string[];
-  pricePerHour: number;
+  pricePerHour?: number;
   pricePerDay: number;
   images: {
     url: string;
     alt: string;
+    isPrimary?: boolean;
     isFeatured?: boolean;
   }[];
-  availabilityExceptions: {
+  availabilityExceptions?: {
     date: string;
     isAvailable: boolean;
     reason?: string;
   }[];
-  reviews: Review[];
+  reviews?: Review[];
   rating: number;
+  totalReviews?: number;
+  isFeatured?: boolean;
+  isActive?: boolean;
   vendor: {
     id: string;
     name: string;
+    contactName?: string;
+    email?: string;
     avatarUrl?: string;
-    responseRate: number;
-    responseTime: string;
+    responseRate?: number;
+    responseTime?: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -72,10 +80,27 @@ export interface VenueSearchFilters {
   maxCapacity?: number;
   amenities?: string[];
   categories?: string[];
+  tehsil?: string;
   page?: number;
   limit?: number;
   sort?: "price_asc" | "price_desc" | "rating_desc" | "newest";
 }
+
+
+// Tehsil Type for Dropdown
+export interface Tehsil {
+  id: number;
+  name: string;
+  district?: {
+    id: number;
+    name: string;
+    state?: {
+      id: number;
+      name: string;
+    };
+  };
+}
+
 
 // Booking Types
 export interface Booking {

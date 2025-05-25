@@ -16,10 +16,12 @@ def send_otp_email(email, code):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     role = serializers.ChoiceField(choices=User.Role.choices, required=False)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'role']
+        fields = ['email', 'password', 'role', 'first_name', 'last_name']
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -30,11 +32,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         role = validated_data.get('role', User.Role.USER)
         if role == User.Role.ADMIN:
             role = User.Role.USER  # Prevent creating admin via API
+        first_name = validated_data.get('first_name', '')
+        last_name = validated_data.get('last_name', '')
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
             role=role,
-            email_verified=False
+            email_verified=False,
+            first_name=first_name,
+            last_name=last_name,
         )
         # Generate OTP and send automatically for signup verification
         code = f"{random.randint(0, 999999):06d}"
@@ -42,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         cache.set(f"otp_signup_attempts:{user.email}", 0, timeout=300)
         send_otp_email(user.email, code)
         return user
+
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()

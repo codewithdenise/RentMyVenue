@@ -23,6 +23,12 @@ import VenueDetails from "@/pages/venues/VenueDetails";
 import VenueBooking from "@/pages/venues/VenueBooking";
 import BookingConfirmation from "@/pages/venues/BookingConfirmation";
 
+// Dashboard Pages
+import UserDashboard from "@/pages/user/UserDashboard";
+import UserBookings from "@/pages/user/UserBookings";
+import VendorDashboard from "@/pages/vendor/VendorDashboard";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+
 const App = () => {
   // Create a new QueryClient instance inside the component
   const queryClient = new QueryClient({
@@ -144,14 +150,8 @@ const App = () => {
 
                   {/* User Dashboard Routes */}
                   <Route path="/user" element={<DashboardLayout />}>
-                    <Route
-                      path="dashboard"
-                      element={<div>User Dashboard (Coming Soon)</div>}
-                    />
-                    <Route
-                      path="bookings"
-                      element={<div>User Bookings (Coming Soon)</div>}
-                    />
+                    <Route path="dashboard" element={<UserDashboard />} />
+                    <Route path="bookings" element={<UserBookings />} />
                     <Route
                       path="profile"
                       element={<div>User Profile (Coming Soon)</div>}
@@ -164,10 +164,7 @@ const App = () => {
 
                   {/* Vendor Dashboard Routes */}
                   <Route path="/vendor" element={<DashboardLayout />}>
-                    <Route
-                      path="dashboard"
-                      element={<div>Vendor Dashboard (Coming Soon)</div>}
-                    />
+                    <Route path="dashboard" element={<VendorDashboard />} />
                     <Route
                       path="venues"
                       element={<div>Venue Management (Coming Soon)</div>}
@@ -192,10 +189,7 @@ const App = () => {
 
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin" element={<DashboardLayout />}>
-                    <Route
-                      path="dashboard"
-                      element={<div>Admin Dashboard (Coming Soon)</div>}
-                    />
+                    <Route path="dashboard" element={<AdminDashboard />} />
                     <Route
                       path="users"
                       element={<div>User Management (Coming Soon)</div>}

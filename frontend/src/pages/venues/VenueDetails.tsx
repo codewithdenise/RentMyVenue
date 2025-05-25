@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import venueService from "@/services/venueService";
+import type { Venue } from "@/types";
 
 interface VenueDetailsProps {
   openAuthModal: (type: "login" | "signup" | "forgotPassword" | "none") => void;
@@ -36,7 +37,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  const [venue, setVenue] = useState<any>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -51,11 +52,16 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
         if (!id) throw new Error("Venue ID is required");
 
         const response = await venueService.getVenueById(id);
-        setVenue(response);
+        
+        if (response.success && response.data) {
+          setVenue(response.data);
 
-        // Set the first image as selected
-        if (response.images && response.images.length > 0) {
-          setSelectedImage(response.images[0].url);
+          // Set the first image as selected
+          if (response.data.images && response.data.images.length > 0) {
+            setSelectedImage(response.data.images[0].url);
+          }
+        } else {
+          throw new Error(response.error || "Failed to load venue details");
         }
       } catch (error: any) {
         setError(error.message || "Failed to load venue details");
@@ -450,3 +456,5 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
     </div>
   );
 };
+
+export default VenueDetails;

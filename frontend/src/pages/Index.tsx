@@ -1,19 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Users, MapPin } from "lucide-react";
+import { Search, Users, MapPin, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import venueService from "@/services/venueService";
+import { Venue } from "@/types";
+
+
+
 
 const Index = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [capacity, setCapacity] = useState<string>("");
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [openFromDate, setOpenFromDate] = useState(false);
+  const [openToDate, setOpenToDate] = useState(false);
 
-  const [featuredVenues, setFeaturedVenues] = useState<any[]>([]);
+  const [featuredVenues, setFeaturedVenues] = useState<Venue[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(false);
   const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
+
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,9 +34,17 @@ const Index = () => {
     const params = new URLSearchParams();
     if (location) params.append("query", location);
     if (capacity) params.append("capacity", capacity);
+    if (fromDate) params.append("from_date", fromDate.toISOString().split('T')[0]);
+    if (toDate) params.append("to_date", toDate.toISOString().split('T')[0]);
 
     navigate(`/venues${params.toString() ? "?" + params.toString() : ""}`);
   };
+
+
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     const fetchFeaturedVenues = async () => {
@@ -31,12 +52,12 @@ const Index = () => {
       setErrorFeatured(null);
       try {
         const response = await venueService.getFeaturedVenues();
-        // Ensure response is an array before setting state
-        if (response && Array.isArray(response)) {
-          setFeaturedVenues(response);
+        if (response.success && response.data) {
+          // Limit to top 10 featured venues
+          setFeaturedVenues(response.data.slice(0, 10));
         } else {
           setFeaturedVenues([]);
-          setErrorFeatured("Invalid data format received for featured venues");
+          setErrorFeatured(response.error || "Failed to load featured venues");
         }
       } catch (error: any) {
         setErrorFeatured(error.message || "Failed to load featured venues");
@@ -48,6 +69,42 @@ const Index = () => {
 
     fetchFeaturedVenues();
   }, []);
+
+
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (carouselRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+        setCanScrollLeft(scrollLeft > 0);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+      }
+    };
+
+    if (carouselRef.current) {
+      carouselRef.current.addEventListener('scroll', checkScroll);
+      checkScroll();
+    }
+
+    return () => {
+      if (carouselRef.current) {
+        carouselRef.current.removeEventListener('scroll', checkScroll);
+      }
+    };
+  }, [featuredVenues]);
+
+  const scrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -carouselRef.current.clientWidth, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: carouselRef.current.clientWidth, behavior: 'smooth' });
+    }
+  };
+
 
   return (
     <div className="min-h-screen">
@@ -63,40 +120,124 @@ const Index = () => {
             </p>
 
             {/* Search Box */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <form
                 onSubmit={handleSearch}
-                className="flex flex-col md:flex-row gap-2 bg-card p-4 rounded-lg shadow"
+                className="flex flex-col md:flex-row gap-4 bg-white p-6 rounded-xl shadow-md items-center"
               >
-                <div className="relative flex-grow">
-                  <MapPin className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Location (District, State)"
-                    className="pl-10 w-full"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
+                {/* Location */}
+                <div className="flex flex-col flex-grow min-w-[220px]">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    City, Property Name Or Location
+                  </label>
+                  <div className="relative flex-grow">
+                    <MapPin className="absolute left-3 top-10 h-5 w-5 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Location (District, State)"
+                      className="pl-10 w-full h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="relative flex-grow-0 w-full md:w-auto">
-                  <Users className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <select
-                    className="w-full md:w-48 h-10 pl-10 pr-4 border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                    value={capacity}
-                    onChange={(e) => setCapacity(e.target.value)}
+
+                {/* From Date */}
+                <div className="flex flex-col flex-grow-0 min-w-[180px]">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Check-In
+                  </label>
+                  <Popover open={openFromDate} onOpenChange={setOpenFromDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full md:w-48 justify-start text-left font-normal h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                      >
+                        <Calendar className="mr-2 h-5 w-5 text-gray-400" />
+                        {fromDate ? format(fromDate, "PPP") : <span>Check-In</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={fromDate}
+                        onSelect={(date) => {
+                          setFromDate(date);
+                          setOpenFromDate(false);
+                        }}
+                        initialFocus
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* To Date */}
+                <div className="flex flex-col flex-grow-0 min-w-[180px]">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Check-Out
+                  </label>
+                  <Popover open={openToDate} onOpenChange={setOpenToDate}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full md:w-48 justify-start text-left font-normal h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                        disabled={!fromDate}
+                      >
+                        <Calendar className="mr-2 h-5 w-5 text-gray-400" />
+                        {toDate ? format(toDate, "PPP") : <span>Check-Out</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={toDate}
+                        onSelect={(date) => {
+                          setToDate(date);
+                          setOpenToDate(false);
+                        }}
+                        initialFocus
+                        disabled={(date) => !fromDate || date < fromDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Number of Guests */}
+                <div className="flex flex-col flex-grow-0 min-w-[180px]">
+                  <label className="text-xs font-semibold text-gray-500 mb-1">
+                    Rooms & Guests
+                  </label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-10 h-5 w-5 text-gray-400" />
+                    <select
+                      className="w-full md:w-48 h-12 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value)}
+                    >
+                      <option value="">Number of guests</option>
+                      <option value="50">50+ guests</option>
+                      <option value="100">100+ guests</option>
+                      <option value="200">200+ guests</option>
+                      <option value="300">300+ guests</option>
+                      <option value="500">500+ guests</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Find Venues Button */}
+                <div className="flex flex-col flex-grow-0 min-w-[140px]">
+                  <Button
+                    type="submit"
+                    className="w-full px-8 py-3 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    style={{ minHeight: '48px' }}
                   >
-                    <option value="">Number of guests</option>
-                    <option value="50">50+ guests</option>
-                    <option value="100">100+ guests</option>
-                    <option value="200">200+ guests</option>
-                    <option value="300">300+ guests</option>
-                    <option value="500">500+ guests</option>
-                  </select>
+                    <Search className="mr-2 h-5 w-5" /> Find Venues
+                  </Button>
                 </div>
-                <Button type="submit" className="px-8">
-                  <Search className="mr-2 h-4 w-4" /> Find Venues
-                </Button>
               </form>
+
+              {/* Rest of the component JSX */}
             </div>
           </div>
         </div>
@@ -112,54 +253,91 @@ const Index = () => {
             </p>
           </div>
 
-          {loadingFeatured && <p>Loading featured venues...</p>}
-          {errorFeatured && <p className="text-red-600">{errorFeatured}</p>}
+          {loadingFeatured && <p className="text-center">Loading featured venues...</p>}
+          {errorFeatured && <p className="text-red-600 text-center">{errorFeatured}</p>}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Featured Venue Cards */}
-            {featuredVenues.map((venue, i) => (
-              <Card key={i} className="overflow-hidden border">
-                <img
-                  src={venue.cover_image?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
-                  alt={venue.name}
-                  className="w-full h-48 object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src =
-                      "https://source.unsplash.com/random/600x400/?venue,wedding";
-                  }}
-                />
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold">{venue.name}</h3>
-                    <div className="text-lg font-semibold">
-                      ₹{venue.price?.toLocaleString("en-IN") || "N/A"}
-                      <span className="text-sm text-muted-foreground">
-                        /day
-                      </span>
+          {featuredVenues.length > 0 && (
+            <div className="relative">
+              {/* Navigation Buttons for Desktop */}
+              <div className="hidden lg:block">
+                {canScrollLeft && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white"
+                    onClick={scrollLeft}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                )}
+                {canScrollRight && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white"
+                    onClick={scrollRight}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Carousel Container */}
+              <div
+                ref={carouselRef}
+                className="overflow-hidden whitespace-nowrap scroll-smooth"
+                style={{ scrollbarWidth: 'none' /* Firefox */, msOverflowStyle: 'none' /* IE and Edge */ }}
+              >
+                <div className="inline-flex gap-4">
+                  {/* Featured Venue Cards */}
+                  {featuredVenues.map((venue) => (
+                    <div key={venue.id} className="w-[calc(33.33%-1rem)] inline-block">
+                      <Card className="overflow-hidden border h-full">
+                        <img
+                          src={venue.images?.[0]?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
+                          alt={venue.name}
+                          className="w-full h-48 object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src =
+                              "https://source.unsplash.com/random/600x400/?venue,wedding";
+                          }}
+                        />
+                        <CardContent className="p-5">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-bold">{venue.name}</h3>
+                            <div className="text-lg font-semibold">
+                              ₹{venue.pricePerDay?.toLocaleString("en-IN") || "N/A"}
+                              <span className="text-sm text-muted-foreground">
+                                /day
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center text-muted-foreground text-sm mb-4">
+                            <MapPin className="mr-1 h-4 w-4" />
+                            {`${venue.address.city}, ${venue.address.state}`}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center bg-accent px-2 py-1 rounded">
+                              <Users className="mr-1 h-4 w-4 text-accent-foreground" />
+                              <span className="text-sm">
+                                Up to {venue.capacity.max} guests
+                              </span>
+                            </div>
+                            <Link to={`/venues/${venue.id}`}>
+                              <Button variant="outline" size="sm">
+                                View Details
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </div>
-                  <div className="flex items-center text-muted-foreground text-sm mb-4">
-                    <MapPin className="mr-1 h-4 w-4" />
-                    {venue.location || `${venue.district?.name}, ${venue.state?.name}`}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center bg-accent px-2 py-1 rounded">
-                      <Users className="mr-1 h-4 w-4 text-accent-foreground" />
-                      <span className="text-sm">
-                        Up to {venue.capacity || "N/A"} guests
-                      </span>
-                    </div>
-                    <Link to={`/venues/${venue.id}`}>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link to="/venues">
@@ -244,24 +422,6 @@ const Index = () => {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Find Your Dream Venue?
-          </h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Start your search today and discover the perfect setting for your
-            special day
-          </p>
-          <Link to="/venues">
-            <Button variant="secondary" size="lg" className="min-w-[200px]">
-              Browse Venues
-            </Button>
-          </Link>
         </div>
       </section>
     </div>

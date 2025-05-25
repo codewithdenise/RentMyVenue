@@ -1,21 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import venueService from "../services/venueService";
-import type { VenueSearchFilters } from "../types";
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  meta?: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-  error?: string;
-}
+import type { VenueSearchFilters, Venue } from "../types";
 
 export function useVenues(initialFilters: VenueSearchFilters = {}) {
-  const [venues, setVenues] = useState<any[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<VenueSearchFilters>(initialFilters);
@@ -30,21 +18,27 @@ export function useVenues(initialFilters: VenueSearchFilters = {}) {
     setLoading(true);
     setError(null);
     try {
-      const response: ApiResponse<any[]> = await venueService.getVenues(filters);
-      if (response.success) {
-        setVenues(response.data || []);
-        if (response.meta) {
-          setMeta(response.meta);
-        }
+      const response = await venueService.getVenues(filters);
+      if (response.success && response.data) {
+        setVenues(response.data.venues);
+        setMeta({
+          total: response.data.total,
+          page: filters.page || 1,
+          limit: filters.limit || 10,
+          totalPages: Math.ceil(response.data.total / (filters.limit || 10)),
+        });
       } else {
         setError(response.error || "Failed to fetch venues");
+        setVenues([]);
       }
     } catch (err: any) {
       setError(err.message || "Failed to fetch venues");
+      setVenues([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchVenues(filters);

@@ -20,7 +20,7 @@ import {
   Calendar,
   Star,
   Filter,
-  ChevronDown,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -42,6 +42,17 @@ import {
 import { VenueCapacityFilter } from "@/components/venues/VenueCapacityFilter";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+
+
+
+
 
 // Placeholder venue cards for loading state
 const VenueCardSkeleton = () => (
@@ -70,6 +81,8 @@ const VenueSearch: React.FC = () => {
   const initialMinPrice = searchParams.get("min_price") || "";
   const initialMaxPrice = searchParams.get("max_price") || "";
   const initialAmenities = searchParams.get("amenities")?.split(",") || [];
+  const initialFromDate = searchParams.get("from_date") || "";
+  const initialToDate = searchParams.get("to_date") || "";
 
   // State for filters
   const [searchQuery, setSearchQuery] = useState(initialQuery);
@@ -79,8 +92,14 @@ const VenueSearch: React.FC = () => {
     initialMinPrice ? parseInt(initialMinPrice) : 1000,
     initialMaxPrice ? parseInt(initialMaxPrice) : 50000,
   ]);
-  const [selectedAmenities, setSelectedAmenities] =
-    useState<string[]>(initialAmenities);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialAmenities);
+  const [fromDate, setFromDate] = useState<Date | undefined>(initialFromDate ? new Date(initialFromDate) : undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(initialToDate ? new Date(initialToDate) : undefined);
+  const [openFromDate, setOpenFromDate] = useState(false);
+  const [openToDate, setOpenToDate] = useState(false);
+
+
+
 
   // List of available amenities
   const amenitiesList = [
@@ -101,30 +120,33 @@ const VenueSearch: React.FC = () => {
   // Fetch venues with initial search params
   const {
     venues,
-    isLoading,
+    loading: isLoading,
     error,
-    totalVenues,
-    totalPages,
-    currentPage,
-    fetchNextPage,
-    fetchPreviousPage,
+    meta,
     setFilters,
+    filters,
   } = useVenues({
-    initialFilters: {
-      limit: 9,
-      query: initialQuery || undefined,
-      minCapacity: initialCapacity ? parseInt(initialCapacity) : undefined,
-      minPrice: initialMinPrice ? parseInt(initialMinPrice) : undefined,
-      maxPrice: initialMaxPrice ? parseInt(initialMaxPrice) : undefined,
-      amenities: initialAmenities.length > 0 ? initialAmenities : undefined,
-      sort: initialSort as
-        | "price_asc"
-        | "price_desc"
-        | "rating_desc"
-        | "newest",
-    },
-    autoFetch: true,
+    limit: 9,
+    query: initialQuery || undefined,
+    minCapacity: initialCapacity && initialCapacity !== "any" ? parseInt(initialCapacity) : undefined,
+    minPrice: initialMinPrice ? parseInt(initialMinPrice) : undefined,
+    maxPrice: initialMaxPrice ? parseInt(initialMaxPrice) : undefined,
+    amenities: initialAmenities.length > 0 ? initialAmenities : undefined,
+    startDate: initialFromDate || undefined,
+    endDate: initialToDate || undefined,
+    sort: initialSort as
+      | "price_asc"
+      | "price_desc"
+      | "rating_desc"
+      | "newest",
   });
+
+
+
+
+  const totalVenues = meta.total;
+  const totalPages = meta.totalPages;
+  const currentPage = meta.page;
 
   // Handle search submission
   const handleSearch = () => {
@@ -139,20 +161,28 @@ const VenueSearch: React.FC = () => {
       newParams.set("max_price", priceRange[1].toString());
     if (selectedAmenities.length > 0)
       newParams.set("amenities", selectedAmenities.join(","));
+    if (fromDate) newParams.set("from_date", fromDate.toISOString().split('T')[0]);
+    if (toDate) newParams.set("to_date", toDate.toISOString().split('T')[0]);
 
     setSearchParams(newParams);
 
     // Update venues filter
     setFilters({
       query: searchQuery || undefined,
-      minCapacity: capacity ? parseInt(capacity) : undefined,
+      minCapacity: capacity && capacity !== "any" ? parseInt(capacity) : undefined,
       minPrice: priceRange[0] > 1000 ? priceRange[0] : undefined,
       maxPrice: priceRange[1] < 50000 ? priceRange[1] : undefined,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+      startDate: fromDate ? fromDate.toISOString().split('T')[0] : undefined,
+      endDate: toDate ? toDate.toISOString().split('T')[0] : undefined,
       sort: sortOption as "price_asc" | "price_desc" | "rating_desc" | "newest",
       page: 1,
+      limit: 9,
     });
   };
+
+
+
 
   // Handle clear filters
   const handleClearFilters = () => {
@@ -161,6 +191,8 @@ const VenueSearch: React.FC = () => {
     setSortOption("rating_desc");
     setPriceRange([1000, 50000]);
     setSelectedAmenities([]);
+    setFromDate(undefined);
+    setToDate(undefined);
     setSearchParams({});
     setFilters({
       limit: 9,
@@ -168,6 +200,71 @@ const VenueSearch: React.FC = () => {
       sort: "rating_desc",
     });
   };
+
+  // Handle individual filter removal
+  const removeFilter = (filterType: string, value?: string) => {
+    switch (filterType) {
+      case "query":
+        setSearchQuery("");
+        break;
+      case "capacity":
+        setCapacity("");
+        break;
+      case "price":
+        setPriceRange([1000, 50000]);
+        break;
+      case "amenity":
+        if (value) {
+          setSelectedAmenities((prev) => prev.filter((a) => a !== value));
+        }
+        break;
+      case "fromDate":
+        setFromDate(undefined);
+        break;
+      case "toDate":
+        setToDate(undefined);
+        break;
+      default:
+        break;
+    }
+    // Update URL params after removal
+    const newParams = new URLSearchParams(searchParams);
+    if (filterType === "query") newParams.delete("query");
+    if (filterType === "capacity") newParams.delete("capacity");
+    if (filterType === "price") {
+      newParams.delete("min_price");
+      newParams.delete("max_price");
+    }
+    if (filterType === "amenity" && value) {
+      const currentAmenities = newParams.get("amenities")?.split(",") || [];
+      const updatedAmenities = currentAmenities.filter((a) => a !== value);
+      if (updatedAmenities.length > 0) {
+        newParams.set("amenities", updatedAmenities.join(","));
+      } else {
+        newParams.delete("amenities");
+      }
+    }
+    if (filterType === "fromDate") newParams.delete("from_date");
+    if (filterType === "toDate") newParams.delete("to_date");
+    setSearchParams(newParams);
+    // Update filters for fetching
+    setFilters({
+      ...filters,
+      query: filterType === "query" ? undefined : filters.query,
+      minCapacity: filterType === "capacity" ? undefined : filters.minCapacity,
+      minPrice: filterType === "price" ? undefined : filters.minPrice,
+      maxPrice: filterType === "price" ? undefined : filters.maxPrice,
+      amenities: filterType === "amenity" && value ? selectedAmenities.filter((a) => a !== value) : filters.amenities,
+      startDate: filterType === "fromDate" ? undefined : filters.startDate,
+      endDate: filterType === "toDate" ? undefined : filters.endDate,
+      page: 1,
+    });
+  };
+
+
+
+
+
 
   // Toggle amenity selection
   const toggleAmenity = (amenity: string) => {
@@ -211,6 +308,61 @@ const VenueSearch: React.FC = () => {
               />
             </div>
 
+            {/* From Date */}
+            <div className="md:col-span-2">
+              <Popover open={openFromDate} onOpenChange={setOpenFromDate}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {fromDate ? format(fromDate, "PPP") : <span>From Date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={(date) => {
+                      setFromDate(date);
+                      setOpenFromDate(false);
+                    }}
+                    initialFocus
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* To Date */}
+            <div className="md:col-span-2">
+              <Popover open={openToDate} onOpenChange={setOpenToDate}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                    disabled={!fromDate}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {toDate ? format(toDate, "PPP") : <span>To Date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={toDate}
+                    onSelect={(date) => {
+                      setToDate(date);
+                      setOpenToDate(false);
+                    }}
+                    initialFocus
+                    disabled={(date) => !fromDate || date < fromDate}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {/* Capacity Select */}
             <div className="md:col-span-3">
               <Select value={capacity} onValueChange={setCapacity}>
@@ -218,7 +370,7 @@ const VenueSearch: React.FC = () => {
                   <SelectValue placeholder="Guest Capacity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any Capacity</SelectItem>
+                  <SelectItem value="any">Any Capacity</SelectItem>
                   <SelectItem value="50">50+ guests</SelectItem>
                   <SelectItem value="100">100+ guests</SelectItem>
                   <SelectItem value="200">200+ guests</SelectItem>
@@ -324,7 +476,7 @@ const VenueSearch: React.FC = () => {
             </div>
 
             {/* Sort By (Desktop) */}
-            <div className="hidden md:block md:col-span-2">
+            <div className="hidden md:block md:col-span-3">
               <Select value={sortOption} onValueChange={setSortOption}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sort by" />
@@ -353,6 +505,8 @@ const VenueSearch: React.FC = () => {
                 Search
               </Button>
             </div>
+
+
           </div>
         </div>
       </div>
@@ -491,7 +645,7 @@ const VenueSearch: React.FC = () => {
                 <div className="flex justify-center mt-8 gap-2">
                   <Button
                     variant="outline"
-                    onClick={fetchPreviousPage}
+                    onClick={() => setFilters({ ...filters, page: Math.max(1, currentPage - 1) })}
                     disabled={currentPage <= 1 || isLoading}
                   >
                     Previous
@@ -501,7 +655,7 @@ const VenueSearch: React.FC = () => {
                   </span>
                   <Button
                     variant="outline"
-                    onClick={fetchNextPage}
+                    onClick={() => setFilters({ ...filters, page: Math.min(totalPages, currentPage + 1) })}
                     disabled={currentPage >= totalPages || isLoading}
                   >
                     Next
@@ -564,7 +718,7 @@ const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
           <div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md">
             <Users className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">
-              Up to {venue.capacity?.max || venue.capacity || 100} guests
+              Up to {typeof venue.capacity === 'object' ? venue.capacity?.max : venue.capacity || 100} guests
             </span>
           </div>
 
@@ -585,7 +739,7 @@ const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-3">
         <div className="text-lg font-semibold">
-          ₹{(venue.pricePerDay || venue.price || 25000).toLocaleString("en-IN")}
+          ₹{(venue.pricePerDay || 25000).toLocaleString("en-IN")}
           <span className="text-sm text-muted-foreground">/day</span>
         </div>
         <Link to={`/venues/${venue.id}`}>

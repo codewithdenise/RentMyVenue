@@ -21,6 +21,7 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Venue.objects.filter(status=Venue.Status.PUBLISHED)
     serializer_class = VenueListSerializer
     permission_classes = [AllowAny]
+    pagination_class = None  # We'll use custom pagination if needed
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -29,6 +30,10 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.select_related('category', 'state', 'district', 'tehsil')\
+                           .prefetch_related('images', 'amenities')\
+                           .only('id', 'name', 'address_line', 'capacity', 'is_ac', 'indoor_outdoor', 'category', 'state', 'district', 'tehsil', 'images', 'amenities')
+
         # Apply filters from query params
         state_id = self.request.query_params.get('state')
         district_id = self.request.query_params.get('district')
@@ -65,11 +70,13 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
             amenity_names = [a.strip() for a in amenities.split(',')]
             for amenity_name in amenity_names:
                 queryset = queryset.filter(amenities__name__iexact=amenity_name)
-        return queryset.distinct()
+        return queryset.distinct()[:20]  # Limit to 20 for performance
+
 
 class FeaturedVenueListView(generics.ListAPIView):
     serializer_class = VenueListSerializer
     permission_classes = [AllowAny]
+    pagination_class = None  # We'll use custom pagination if needed
 
     def get_queryset(self):
         today = timezone.now().date()
@@ -78,7 +85,12 @@ class FeaturedVenueListView(generics.ListAPIView):
             featured_from__lte=today,
         ).filter(
             Q(featured_until__isnull=True) | Q(featured_until__gte=today)
-        ).order_by('featured_priority', 'name')
+        ).select_related('category', 'state', 'district', 'tehsil')\
+         .prefetch_related('images', 'amenities')\
+         .only('id', 'name', 'address_line', 'capacity', 'is_ac', 'indoor_outdoor', 'category', 'state', 'district', 'tehsil', 'images', 'amenities')\
+         .order_by('featured_priority', 'name')[:20]  # Limit to 20 for performance
+
+
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.filter(is_active=True)
