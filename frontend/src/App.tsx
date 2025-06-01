@@ -30,6 +30,11 @@ import VendorDashboard from "@/pages/vendor/VendorDashboard";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import BecomeHost from "@/pages/BecomeHost";
 
+type AuthModalState = {
+  type: AuthModalType;
+  signupRole?: "user" | "vendor";
+};
+
 const App = () => {
   // Create a new QueryClient instance inside the component
   const queryClient = new QueryClient({
@@ -42,7 +47,19 @@ const App = () => {
   });
 
   // State for authentication modal
-  const [authModalOpen, setAuthModalOpen] = useState<AuthModalType>("none");
+  const [authModalOpen, setAuthModalOpen] = useState<AuthModalState>({
+    type: "none",
+  });
+
+  // Function to open auth modal with optional signupRole
+  const openAuthModal = (type: AuthModalType, signupRole?: "user" | "vendor") => {
+    setAuthModalOpen({ type, signupRole });
+  };
+
+  // Function to handle modal close
+  const handleAuthModalClose = () => {
+    setAuthModalOpen({ type: "none" });
+  };
 
   return (
     <ErrorBoundary
@@ -61,17 +78,22 @@ const App = () => {
               <AuthProvider>
                 {/* Auth Modals - Global */}
                 <AuthModals
-                  open={authModalOpen}
-                  onOpenChange={setAuthModalOpen}
+                  open={authModalOpen.type}
+                  onOpenChange={(type) => {
+                    if (type === "none") {
+                      handleAuthModalClose();
+                    } else {
+                      setAuthModalOpen((prev) => ({ ...prev, type }));
+                    }
+                  }}
+                  signupRole={authModalOpen.signupRole}
                 />
 
                 <Routes>
                   {/* Main Routes with MainLayout */}
                   <Route
                     element={
-                      <MainLayout
-                        onOpenAuthModal={(type) => setAuthModalOpen(type)}
-                      />
+                      <MainLayout onOpenAuthModal={openAuthModal} />
                     }
                   >
                     <Route path="/" element={<Index />} />
@@ -79,9 +101,7 @@ const App = () => {
                     <Route
                       path="/venues/:id"
                       element={
-                        <VenueDetails
-                          openAuthModal={(type) => setAuthModalOpen(type)}
-                        />
+                        <VenueDetails openAuthModal={openAuthModal} />
                       }
                     />
                     <Route path="/venues/:id/book" element={<VenueBooking />} />
@@ -96,9 +116,7 @@ const App = () => {
                     <Route
                       path="/become-a-host"
                       element={
-                        <BecomeHost
-                          openAuthModal={(type) => setAuthModalOpen(type)}
-                        />
+                        <BecomeHost openAuthModal={openAuthModal} />
                       }
                     />
                     <Route
