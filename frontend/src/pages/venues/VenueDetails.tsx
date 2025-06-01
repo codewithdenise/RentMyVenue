@@ -1,37 +1,36 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import {
   MapPin,
   Users,
-  Calendar as CalendarIcon,
   Star,
   Clock,
   Wifi,
   Car,
   Music,
   Utensils,
-  Phone,
-  Mail,
   Share2,
   Heart,
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import venueService from "@/services/venueService";
+
+// @ts-ignore
 import type { Venue } from "@/types";
+import { isBefore, isSameDay, parseISO } from "date-fns";
 
 interface VenueDetailsProps {
   openAuthModal: (type: "login" | "signup" | "forgotPassword" | "none") => void;
 }
 
-const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
+const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -42,8 +41,20 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [bookedRanges, setBookedRanges] = useState<
+    Array<{ start: string; end: string }>
+  >([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  // Fetch venue details
+  // Icon map for amenities
+  const amenityIcons: Record<string, React.ReactNode> = {
+    Wifi: <Wifi className="h-4 w-4" />,
+    Parking: <Car className="h-4 w-4" />,
+    "Sound System": <Music className="h-4 w-4" />,
+    Catering: <Utensils className="h-4 w-4" />,
+  };
+
+  // Fetch venue details and booked dates
   useEffect(() => {
     const fetchVenueDetails = async () => {
       setLoading(true);
@@ -52,8 +63,15 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
         if (!id) throw new Error("Venue ID is required");
 
         const response = await venueService.getVenueById(id);
-        
-        if (response.success && response.data) {
+        // Use getVenueAvailability as fallback for booked dates
+        let bookedResponse = null;
+        try {
+          bookedResponse = await venueService.getVenueAvailability(id, "", "");
+        } catch (e) {
+          bookedResponse = null;
+        }
+
+        if (response && response.success && response.data) {
           setVenue(response.data);
 
           // Set the first image as selected
@@ -61,8 +79,22 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
             setSelectedImage(response.data.images[0].url);
           }
         } else {
-          throw new Error(response.error || "Failed to load venue details");
+          throw new Error(response?.error || "Failed to load venue details");
         }
+
+        if (bookedResponse && bookedResponse.success && bookedResponse.data) {
+          // Adapt data shape if needed
+          if ("booked_ranges" in bookedResponse.data) {
+            setBookedRanges(bookedResponse.data.booked_ranges);
+          } else if ("conflictingDates" in bookedResponse.data) {
+            const ranges = bookedResponse.data.conflictingDates.map((dateStr: string) => ({
+              start: dateStr,
+              end: dateStr,
+            }));
+            setBookedRanges(ranges);
+          }
+        }
+
       } catch (error: any) {
         setError(error.message || "Failed to load venue details");
         toast({
@@ -78,18 +110,46 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
     fetchVenueDetails();
   }, [id, toast]);
 
+  // Check if a date is disabled (past or booked)
+  const isDateDisabled = (date: Date) => {
+    if (isBefore(date, new Date())) return true;
+
+    for (const range of bookedRanges) {
+      const start = parseISO(range.start);
+      const end = parseISO(range.end);
+      if (
+        (isSameDay(date, start) || isSameDay(date, end)) ||
+        (date > start && date < end)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   // Handle booking button click
   const handleBookNow = () => {
     if (!isAuthenticated) {
       openAuthModal("login");
       return;
     }
-
-    navigate(`/venues/${id}/book`);
+    if (!selectedDate) {
+      toast({
+        title: "Select a date",
+        description: "Please select a date before booking.",
+        variant: "default",
+      });
+      return;
+    }
+    navigate(`/venues/${id}/book?date=${selectedDate.toISOString()}`);
   };
 
-  // Toggle favorite
+  // Toggle favorite with backend integration placeholder
   const toggleFavorite = () => {
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
     setIsFavorited(!isFavorited);
 
     toast({
@@ -118,30 +178,20 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
               <h2 className="text-xl font-bold text-destructive mb-2">
                 Venue Not Available
               </h2>
-          <p className="mb-4">
-          {error === "This venue is currently not available."
-            ? `This venue is currently not available for booking. It may be under review or temporarily unlisted.`
-            : error === "Venue not found."
-            ? "The venue you're looking for could not be found. It may have been removed or the link might be incorrect."
-            : error || "An error occurred while loading the venue."}
+              <p className="mb-4">
+                {error === "This venue is currently not available."
+                  ? `This venue is currently not available for booking. It may be under review or temporarily unlisted.`
+                  : error === "Venue not found."
+                  ? "The venue you're looking for could not be found. It may have been removed or the link might be incorrect."
+                  : error || "An error occurred while loading the venue."}
               </p>
-              <Button onClick={() => navigate("/venues")}>
-                Back to Venues
-              </Button>
+              <Button onClick={() => navigate("/venues")}>Back to Venues</Button>
             </div>
           </CardContent>
         </Card>
       </div>
     );
   }
-
-  // Icon map for amenities
-  const amenityIcons: Record<string, React.ReactNode> = {
-    Wifi: <Wifi className="h-4 w-4" />,
-    Parking: <Car className="h-4 w-4" />,
-    "Sound System": <Music className="h-4 w-4" />,
-    Catering: <Utensils className="h-4 w-4" />,
-  };
 
   return (
     <div className="container mx-auto py-8">
@@ -276,7 +326,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
 
           {/* Tabs for Details, Amenities, etc. */}
           <Tabs defaultValue="amenities">
-          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="amenities">Amenities</TabsTrigger>
               <TabsTrigger value="location">Location</TabsTrigger>
             </TabsList>
@@ -346,13 +396,13 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
               </div>
 
               <div className="border rounded-md p-4 mb-4">
-                <div className="text-center mb-2">
-                  <p className="font-medium">Check Availability</p>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-sm">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>Select dates to see availability</span>
-                </div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={isDateDisabled}
+                  className="rounded-md border"
+                />
               </div>
 
               <Button className="w-full mb-3" size="lg" onClick={handleBookNow}>
@@ -385,22 +435,6 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
                   <span>
                     ₹{(venue.pricePerDay * 1.05).toLocaleString("en-IN")}
                   </span>
-                </div>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div>
-                <h4 className="font-medium mb-2">Contact Host</h4>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call Host
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Message Host
-                  </Button>
                 </div>
               </div>
             </CardContent>

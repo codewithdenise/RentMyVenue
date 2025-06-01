@@ -100,6 +100,34 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
         # Only apply limit for list action
         return queryset.distinct()[:20]
 
+    @action(detail=True, methods=['get'])
+    def booked_dates(self, request, pk=None):
+        """
+        Return a list of booked date ranges for the venue.
+        """
+        from bookings.models import Booking
+        from django.utils.timezone import make_aware
+        import datetime
+
+        venue = self.get_object()
+        # Get bookings with status HELD or CONFIRMED
+        bookings = Booking.objects.filter(
+            venue=venue,
+            status__in=[Booking.Status.HELD, Booking.Status.CONFIRMED]
+        )
+
+        # Collect booked date ranges as list of dicts with start and end dates in ISO format
+        booked_ranges = []
+        for booking in bookings:
+            start_date = booking.start_datetime.date()
+            end_date = booking.end_datetime.date()
+            booked_ranges.append({
+                'start': start_date.isoformat(),
+                'end': end_date.isoformat()
+            })
+
+        return Response({'booked_ranges': booked_ranges})
+
 
 class FeaturedVenueListView(generics.ListAPIView):
     serializer_class = VenueListSerializer
