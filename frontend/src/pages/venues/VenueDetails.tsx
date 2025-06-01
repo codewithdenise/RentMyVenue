@@ -116,9 +116,15 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-xl font-bold text-destructive mb-2">
-                Error Loading Venue
+                Venue Not Available
               </h2>
-              <p className="mb-4">{error || "Venue not found"}</p>
+          <p className="mb-4">
+          {error === "This venue is currently not available."
+            ? `This venue is currently not available for booking. It may be under review or temporarily unlisted.`
+            : error === "Venue not found."
+            ? "The venue you're looking for could not be found. It may have been removed or the link might be incorrect."
+            : error || "An error occurred while loading the venue."}
+              </p>
               <Button onClick={() => navigate("/venues")}>
                 Back to Venues
               </Button>
@@ -270,11 +276,9 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
 
           {/* Tabs for Details, Amenities, etc. */}
           <Tabs defaultValue="amenities">
-            <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="amenities">Amenities</TabsTrigger>
-              <TabsTrigger value="availability">Availability</TabsTrigger>
               <TabsTrigger value="location">Location</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
 
             <TabsContent value="amenities" className="space-y-4">
@@ -297,30 +301,6 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="availability">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Check Availability
-                  </h3>
-                  <div className="flex flex-col items-center">
-                    <Calendar
-                      mode="single"
-                      selected={new Date()}
-                      className="rounded-md border mb-4"
-                    />
-                    <p className="text-sm text-muted-foreground text-center mb-4">
-                      Select a date to check availability. Green dates are
-                      available.
-                    </p>
-                    <Button onClick={handleBookNow}>
-                      Check Available Time Slots
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             <TabsContent value="location">
               <Card>
                 <CardContent className="pt-6">
@@ -336,32 +316,6 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }) => {
                     </p>
                     <p className="text-sm text-muted-foreground mt-2">
                       Exact location provided after booking.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="reviews">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Reviews</h3>
-                    {venue.rating && (
-                      <div className="flex items-center">
-                        <Star className="h-5 w-5 text-yellow-500 fill-yellow-500 mr-1" />
-                        <span className="font-medium">
-                          {venue.rating.toFixed(1)}
-                        </span>
-                        <span className="text-muted-foreground ml-1">
-                          (24 reviews)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">
-                      Reviews will appear here after bookings.
                     </p>
                   </div>
                 </CardContent>
