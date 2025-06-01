@@ -10,7 +10,6 @@ import { Venue } from "@/types";
 const Index = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
-  const [capacity, setCapacity] = useState<string>("");
 
   const [featuredVenues, setFeaturedVenues] = useState<Venue[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(false);
@@ -21,7 +20,6 @@ const Index = () => {
 
     const params = new URLSearchParams();
     if (location) params.append("query", location);
-    if (capacity) params.append("capacity", capacity);
 
     navigate(`/venues${params.toString() ? "?" + params.toString() : ""}`);
   };
@@ -90,13 +88,20 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 flex items-center justify-center bg-gradient-to-r from-primary/10 to-accent/20">
-        <div className="container relative z-10 mx-auto px-4">
+      <section 
+        className="relative py-20 flex items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage: 'url("https://cdn.pixabay.com/photo/2017/08/06/12/06/people-2591874_1280.jpg")'
+        }}
+      >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/50 z-10"></div>
+        <div className="container relative z-20 mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6">
+            <h1 className="text-3xl md:text-5xl font-bold mb-6 text-white">
               Get Your Perfect Wedding Venue
             </h1>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
+            <p className="text-xl mb-8 max-w-2xl mx-auto text-white">
               Explore beautiful venues that can host your wedding guests
             </p>
 
@@ -104,7 +109,7 @@ const Index = () => {
             <div className="max-w-7xl mx-auto">
               <form
                 onSubmit={handleSearch}
-                className="flex flex-col md:flex-row gap-4 bg-white p-6 rounded-xl shadow-md items-center"
+                className="flex flex-col md:flex-row gap-4 bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-md items-center"
               >
                 {/* Location */}
                 <div className="flex flex-col flex-grow min-w-[220px]">
@@ -121,25 +126,6 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Number of Guests */}
-                <div className="flex flex-col flex-grow-0 min-w-[180px]">
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-
-                    <select
-                      className="w-full md:w-48 h-12 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                      value={capacity}
-                      onChange={(e) => setCapacity(e.target.value)}
-                    >
-                      <option value="">Number of guests</option>
-                      <option value="50">50+ guests</option>
-                      <option value="100">100+ guests</option>
-                      <option value="200">200+ guests</option>
-                      <option value="300">300+ guests</option>
-                      <option value="500">500+ guests</option>
-                    </select>
-                  </div>
-                </div>
 
                 {/* Find Venues Button */}
                 <div className="flex flex-col flex-grow-0 min-w-[140px]">
@@ -280,8 +266,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold mb-2">Search</h3>
               <p className="text-muted-foreground">
-                Enter your location and guest count to find venues that can
-                accommodate your wedding
+                Enter your location to find beautiful venues for your wedding
               </p>
             </div>
             <div className="text-center">

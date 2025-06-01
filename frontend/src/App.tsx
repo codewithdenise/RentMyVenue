@@ -28,6 +28,7 @@ import UserDashboard from "@/pages/user/UserDashboard";
 import UserBookings from "@/pages/user/UserBookings";
 import VendorDashboard from "@/pages/vendor/VendorDashboard";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import BecomeHost from "@/pages/BecomeHost";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -95,21 +96,9 @@ const App = () => {
                     <Route
                       path="/become-a-host"
                       element={
-                        <div className="p-4">
-                          <h1 className="text-2xl font-bold mb-4">
-                            Become a Host
-                          </h1>
-                          <p className="mb-2">
-                            Share your venue with couples looking for the
-                            perfect wedding location.
-                          </p>
-                          <button
-                            className="px-4 py-2 bg-primary text-white rounded"
-                            onClick={() => setAuthModalOpen("signup")}
-                          >
-                            Get Started
-                          </button>
-                        </div>
+                        <BecomeHost
+                          openAuthModal={(type) => setAuthModalOpen(type)}
+                        />
                       }
                     />
                     <Route

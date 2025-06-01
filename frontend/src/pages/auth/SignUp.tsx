@@ -105,6 +105,7 @@ const SignUp: React.FC = () => {
         name: values.name,
         role: values.role as UserRole,
       });
+      setOtp(""); // Reset OTP input to empty string
       setShowOtpForm(true);
     }
   };
@@ -195,6 +196,7 @@ const SignUp: React.FC = () => {
                     onChange={(e) => setOtp(e.target.value)}
                     className="text-center text-lg tracking-widest"
                     maxLength={6}
+                    autoComplete="one-time-code"
                   />
                 </div>
                 <Button

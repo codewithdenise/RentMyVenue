@@ -275,18 +275,10 @@ const venueService = {
   // Get featured venues
   getFeaturedVenues: async (): Promise<ApiResponse<Venue[]>> => {
     try {
-      const response = await api.get<VenueListResponse | BackendVenue[]>("/api/venues/?is_featured=true&page_size=6");
+      const response = await api.get<BackendVenue[]>("/api/featured-venues/");
       
       if (response.success && response.data) {
-        let venues: Venue[];
-
-        if (Array.isArray(response.data)) {
-          // Direct array response
-          venues = response.data.map(transformVenue);
-        } else {
-          // Paginated response
-          venues = response.data.results.map(transformVenue);
-        }
+        const venues = response.data.map(transformVenue);
 
         return {
           success: true,

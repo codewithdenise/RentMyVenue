@@ -63,6 +63,7 @@ const SignIn: React.FC = () => {
     // In a real app with 2FA, you would show OTP form after successful login
     // For demo purposes, we'll simulate this by checking specific credentials
     if (values.email === "demo@example.com" && values.password === "password") {
+      setOtp(""); // Reset OTP input to empty string
       setShowOtpForm(true);
     }
   };
@@ -111,6 +112,7 @@ const SignIn: React.FC = () => {
                   onChange={(e) => setOtp(e.target.value)}
                   className="text-center text-lg tracking-widest"
                   maxLength={6}
+                  autoComplete="one-time-code"
                 />
               </div>
               <Button

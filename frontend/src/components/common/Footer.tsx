@@ -2,17 +2,19 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Facebook, Instagram, Twitter, Mail, PhoneCall } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FooterProps {
   className?: string;
 }
 
 const Footer: React.FC<FooterProps> = ({ className }) => {
+  const { isAuthenticated } = useAuth();
   return (
     <footer className={cn("bg-card text-card-foreground", className)}>
       <div className="container mx-auto px-4 py-10">
         {/* Top section with logo and information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           {/* Logo and description */}
           <div className="space-y-4">
             <Link to="/" className="inline-block font-bold text-xl">
@@ -64,53 +66,16 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
                   Featured Venues
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/become-a-host"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Become a Host
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Help links */}
-          <div>
-            <h3 className="font-medium text-base mb-4">Help</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  to="/faq"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/support"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Support Center
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/cancellation-policy"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Cancellation Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/safety-resources"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  Safety Resources
-                </Link>
-              </li>
+              {!isAuthenticated && (
+                <li>
+                  <Link
+                    to="/become-a-host"
+                    className="text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Become a Host
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
