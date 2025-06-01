@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthModalType } from "@/components/auth/AuthModals";
 
 interface BecomeHostProps {
-  openAuthModal: (type: AuthModalType) => void;
+  openAuthModal: (type: AuthModalType, signupRole?: "user" | "vendor") => void;
 }
 
 const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
@@ -65,7 +65,7 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
   ];
 
   const handleSignUp = () => {
-    openAuthModal("signup");
+    openAuthModal("signup", "vendor");
   };
 
   const handleGoToDashboard = () => {

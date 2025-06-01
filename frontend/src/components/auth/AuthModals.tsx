@@ -77,9 +77,14 @@ export type AuthModalType = "signin" | "signup" | "none";
 interface AuthModalsProps {
   open: AuthModalType;
   onOpenChange: (open: AuthModalType) => void;
+  signupRole?: UserRole; // New prop to fix signup role, default "user"
 }
 
-const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
+const AuthModals: React.FC<AuthModalsProps> = ({
+  open,
+  onOpenChange,
+  signupRole = "user",
+}) => {
   const {
     login,
     register,
@@ -95,7 +100,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<UserRole>("user");
+  // Remove role state, use signupRole prop instead
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -116,7 +121,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "user",
     },
   });
 
@@ -153,8 +157,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     setEmail(values.email);
     setPassword(values.password);
     setName(values.name);
-    setRole(values.role as UserRole);
-
+    // Use signupRole prop instead of role state
     try {
       // First, attempt to send OTP
       const otpSent = await requestOtp(values.email);
@@ -177,8 +180,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
           // Complete the sign in process
           await login(email, password, signInForm.getValues().remember);
         } else if (open === "signup") {
-          // Complete the sign up process
-          await register(email, password, name, role);
+          // Complete the sign up process with fixed role
+          await register(email, password, name, signupRole);
         }
 
         // Close the modal and reset states
@@ -198,7 +201,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     setEmail("");
     setPassword("");
     setName("");
-    setRole("user");
+    // No role state to reset
   };
 
   const handleModalClose = () => {
@@ -550,35 +553,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={signUpForm.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select account type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="user">
-                            I want to book venues
-                          </SelectItem>
-                          <SelectItem value="vendor">
-                            I want to list my venue
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Removed role selection */}
                 <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2">
                   <Button
                     type="button"
