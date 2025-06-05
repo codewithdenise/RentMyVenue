@@ -200,26 +200,33 @@ const authService = {
     }
   },
 
-  // Request OTP for email verification (used for signup)
+  // Request OTP for email verification
   requestOtp: async (
     email: string,
+    type: 'login' | 'signup' = 'signup'
   ): Promise<ApiResponse<{ success: boolean }>> => {
     try {
-      // OTP is automatically sent during registration
-      // This method can be used to resend OTP if needed
-      const response = await api.post<{ detail: string }>(
-        "/api/accounts/register/",
-        { email }
-      );
+      // Use the appropriate endpoint based on type
+      const endpoint = type === 'login' ? '/api/accounts/login/' : '/api/accounts/register/';
+      const data = type === 'login' ? { email, password: 'dummy' } : { email };
+      
+      const response = await api.post<{ detail: string }>(endpoint, data);
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          data: { success: true },
+        };
+      }
 
       return {
-        success: true,
-        data: { success: true },
+        success: false,
+        error: response.error || "Failed to send verification code",
       };
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to send OTP",
+        error: error.message || "Failed to send verification code",
       };
     }
   },

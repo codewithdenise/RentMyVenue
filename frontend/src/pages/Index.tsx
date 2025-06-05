@@ -187,28 +187,32 @@ const Index = () => {
               {/* Carousel Container */}
               <div
                 ref={carouselRef}
-                className="overflow-hidden whitespace-nowrap scroll-smooth"
-                style={{ scrollbarWidth: 'none' /* Firefox */, msOverflowStyle: 'none' /* IE and Edge */ }}
+                className="overflow-x-auto overflow-y-hidden scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
-                <div className="inline-flex gap-4">
+                <div className="flex gap-4 pb-4">
                   {/* Featured Venue Cards */}
                   {featuredVenues.map((venue) => (
-                    <div key={venue.id} className="w-[calc(33.33%-1rem)] inline-block">
+                    <div 
+                      key={venue.id} 
+                      className="flex-none w-80 sm:w-96 lg:w-80 xl:w-96"
+                    >
                       <Card className="overflow-hidden border h-full">
-                        <img
-                          src={venue.images?.[0]?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
-                          alt={venue.name}
-                          className="w-full h-48 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src =
-                              "https://source.unsplash.com/random/600x400/?venue,wedding";
-                          }}
-                        />
+                        <div className="relative">
+                          <img
+                            src={venue.images?.[0]?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
+                            alt={venue.name}
+                            className="w-full h-48 object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src =
+                                "https://source.unsplash.com/random/600x400/?venue,wedding";
+                            }}
+                          />
+                        </div>
                         <CardContent className="p-5">
                           <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-xl font-bold">{venue.name}</h3>
-                            <div className="text-lg font-semibold">
+                            <h3 className="text-xl font-bold truncate pr-2">{venue.name}</h3>
+                            <div className="text-lg font-semibold whitespace-nowrap">
                               ₹{venue.pricePerDay?.toLocaleString("en-IN") || "N/A"}
                               <span className="text-sm text-muted-foreground">
                                 /day
@@ -216,8 +220,10 @@ const Index = () => {
                             </div>
                           </div>
                           <div className="flex items-center text-muted-foreground text-sm mb-4">
-                            <MapPin className="mr-1 h-4 w-4" />
-                            {`${venue.address.city}, ${venue.address.state}`}
+                            <MapPin className="mr-1 h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">
+                              {`${venue.address.city}, ${venue.address.state}`}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center bg-accent px-2 py-1 rounded">

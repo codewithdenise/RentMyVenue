@@ -27,7 +27,7 @@ import type { Venue } from "@/types";
 import { isBefore, isSameDay, parseISO } from "date-fns";
 
 interface VenueDetailsProps {
-  openAuthModal: (type: "login" | "signup" | "forgotPassword" | "none") => void;
+  openAuthModal: (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => void;
 }
 
 const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Element => {

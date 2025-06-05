@@ -9,6 +9,11 @@ interface UseAuthOptions {
   requireRole?: UserRole | UserRole[];
 }
 
+interface LoginResponse {
+  user: User;
+  token: string;
+}
+
 interface UseAuthReturn {
   user: User | null;
   isAuthenticated: boolean;
@@ -20,9 +25,9 @@ interface UseAuthReturn {
     password: string,
     name: string,
     role: UserRole,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
-  requestOtp: (email: string) => Promise<boolean>;
+  requestOtp: (email: string, type?: 'login' | 'signup') => Promise<boolean>;
   verifyOtp: (email: string, otp: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, password: string) => Promise<boolean>;
@@ -143,9 +148,10 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           }
 
           // Navigate based on role
-          if (response.data.user.role === "admin") {
+          const userData = response.data as LoginResponse;
+          if (userData.user.role === "admin") {
             navigate("/admin/dashboard");
-          } else if (response.data.user.role === "vendor") {
+          } else if (userData.user.role === "vendor") {
             navigate("/vendor/dashboard");
           } else {
             navigate("/user/dashboard");
@@ -168,7 +174,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       password: string,
       name: string,
       role: UserRole,
-    ): Promise<void> => {
+    ): Promise<boolean> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -185,16 +191,18 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           response.data &&
           typeof response.data === "object"
         ) {
-          // Registration successful, but no token issued yet
-          // Do not set user or auth state here
-          return;
+          // Registration successful
+          return true;
         } else if (response.error && typeof response.error === "string") {
           setError(response.error);
+          return false;
         } else {
           setError("Registration failed");
+          return false;
         }
       } catch (err) {
         setError("An error occurred during registration");
+        return false;
       } finally {
         setIsLoading(false);
       }
@@ -227,17 +235,20 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     }
   }, [navigate]);
 
-  const requestOtp = useCallback(async (email: string): Promise<boolean> => {
+  const requestOtp = useCallback(async (email: string, type: 'login' | 'signup' = 'signup'): Promise<boolean> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // In a real app, this would call the API to send OTP
-      const response = await authService.requestOtp(email);
+      // Call the API to send OTP
+      const response = await authService.requestOtp(email, type);
 
-      // For the sake of the demo, we'll always return success
-      // In a real app, you'd check the response
-      return true;
+      if (response.success) {
+        return true;
+      } else {
+        setError(response.error || "Failed to send verification code");
+        return false;
+      }
     } catch (err) {
       setError("Failed to send verification code");
       return false;
@@ -252,15 +263,18 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         setIsLoading(true);
         setError(null);
 
-        // In a real app, this would call the API to verify OTP
+        // Call the API to verify OTP
         const response = await authService.verifyOtp({
           email,
           otp,
         });
 
-        // For the sake of the demo, we'll accept any 6-digit OTP
-        // In a real app, you'd check the API response
-        return otp.length === 6 && /^\d+$/.test(otp);
+        if (response.success) {
+          return true;
+        } else {
+          setError(response.error || "Invalid verification code");
+          return false;
+        }
       } catch (err) {
         setError("Failed to verify code");
         return false;

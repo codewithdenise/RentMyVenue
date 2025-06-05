@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Facebook, Instagram, Twitter, Mail, PhoneCall } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail, PhoneCall, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -85,16 +85,15 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
             <ul className="space-y-3">
               <li className="flex items-center text-sm text-muted-foreground">
                 <Mail className="mr-2 h-4 w-4" />
-                contact@rentmyvenue.com
+                Deoshukla2017@gmail.com
               </li>
               <li className="flex items-center text-sm text-muted-foreground">
                 <PhoneCall className="mr-2 h-4 w-4" />
-                +1 (555) 123-4567
+                +91 99351 47351
               </li>
-              <li className="text-sm text-muted-foreground mt-4">
-                1234 Wedding Lane <br />
-                Suite 567 <br />
-                Los Angeles, CA 90001
+              <li className="flex items-center text-sm text-muted-foreground mt-4">
+                <MapPin className="mr-2 h-4 w-4" />
+                C9/22, Ansal Api, Lucknow, UP 226030
               </li>
             </ul>
           </div>
@@ -107,26 +106,7 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
               &copy; {new Date().getFullYear()} RentMyVenue. All rights
               reserved.
             </p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <Link
-                to="/privacy-policy"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                to="/terms-of-service"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                to="/cookies-policy"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Cookies Policy
-              </Link>
-            </div>
+            <div className="flex gap-6 mt-4 md:mt-0"></div>
           </div>
         </div>
       </div>

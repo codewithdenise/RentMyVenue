@@ -178,7 +178,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={() => openAuthModal("signin")}>
+              <Button variant="ghost" onClick={() => openAuthModal("login")}>
                 Sign In
               </Button>
               <Button onClick={() => openAuthModal("signup")}>Register</Button>
@@ -296,7 +296,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  openAuthModal("signin");
+                  openAuthModal("login");
                   setIsMenuOpen(false);
                 }}
               >

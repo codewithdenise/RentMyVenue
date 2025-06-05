@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+     import React, { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +18,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 // Main Pages
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
+import HowItWorks from "@/pages/HowItWorks";
 import VenueSearch from "@/pages/venues/VenueSearch";
 import VenueDetails from "@/pages/venues/VenueDetails";
 import VenueBooking from "@/pages/venues/VenueBooking";
@@ -28,6 +29,8 @@ import UserDashboard from "@/pages/user/UserDashboard";
 import UserBookings from "@/pages/user/UserBookings";
 import VendorDashboard from "@/pages/vendor/VendorDashboard";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminLogin from "@/pages/admin/AdminLogin";
+import RequireAdminAuth from "@/components/auth/RequireAdminAuth";
 import BecomeHost from "@/pages/BecomeHost";
 
 type AuthModalState = {
@@ -52,8 +55,10 @@ const App = () => {
   });
 
   // Function to open auth modal with optional signupRole
-  const openAuthModal = (type: AuthModalType, signupRole?: "user" | "vendor") => {
-    setAuthModalOpen({ type, signupRole });
+  const openAuthModal = (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => {
+    // Only set valid AuthModalTypes
+    const validType: AuthModalType = type === "forgotPassword" ? "none" : type;
+    setAuthModalOpen({ type: validType, signupRole });
   };
 
   // Function to handle modal close
@@ -111,7 +116,7 @@ const App = () => {
                     />
                     <Route
                       path="/how-it-works"
-                      element={<div>How It Works (Coming Soon)</div>}
+                      element={<HowItWorks />}
                     />
                     <Route
                       path="/become-a-host"
@@ -140,18 +145,6 @@ const App = () => {
                     <Route
                       path="/safety-resources"
                       element={<div>Safety Resources (Coming Soon)</div>}
-                    />
-                    <Route
-                      path="/privacy-policy"
-                      element={<div>Privacy Policy (Coming Soon)</div>}
-                    />
-                    <Route
-                      path="/terms-of-service"
-                      element={<div>Terms of Service (Coming Soon)</div>}
-                    />
-                    <Route
-                      path="/cookies-policy"
-                      element={<div>Cookies Policy (Coming Soon)</div>}
                     />
                   </Route>
 
@@ -195,7 +188,15 @@ const App = () => {
                   </Route>
 
                   {/* Admin Dashboard Routes */}
-                  <Route path="/admin" element={<DashboardLayout />}>
+                  <Route path="/admin-login" element={<AdminLogin />} />
+                  <Route
+                    path="/admin"
+                    element={
+                      <RequireAdminAuth>
+                        <DashboardLayout />
+                      </RequireAdminAuth>
+                    }
+                  >
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route
                       path="users"
