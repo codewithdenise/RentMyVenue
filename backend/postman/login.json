@@ -1,0 +1,78 @@
+{
+  "info": {
+    "_postman_id": "login-api-001",
+    "name": "Login API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Login requests for vendor and admin users to obtain JWT tokens."
+  },
+  "item": [
+    {
+      "name": "Vendor Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"vendoruser\",\n  \"password\": \"vendorpassword\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/auth/login/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"vendor_token\", jsonData.access);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"adminuser\",\n  \"password\": \"adminpassword\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/auth/login/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"admin_token\", jsonData.access);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

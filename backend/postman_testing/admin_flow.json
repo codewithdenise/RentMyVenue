@@ -1,0 +1,175 @@
+{
+  "info": {
+    "name": "Admin Complete Flow",
+    "description": "Admin sign in, CRUD on venues, approvals, soft delete, and all admin powers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin Sign In",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+"raw": "{\n  \"username\": \"hardikaws2@gmail.com\",\n  \"password\": \"hardik@1996\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/login/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "accounts", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"admin_token\", jsonData.access);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "List All Venues",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", ""]
+        }
+      }
+    },
+    {
+      "name": "Get Venue Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", ""]
+        }
+      }
+    },
+    {
+      "name": "Create Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Admin Created Venue\",\n  \"category\": 1,\n  \"tehsil\": 1,\n  \"address_line\": \"Admin Address\",\n  \"pincode\": \"123456\",\n  \"capacity\": 300,\n  \"is_ac\": true,\n  \"indoor_outdoor\": \"indoor\",\n  \"amenities\": [1],\n  \"description\": \"Venue created by admin.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", ""]
+        }
+      }
+    },
+    {
+      "name": "Update Venue",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated by admin.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", ""]
+        }
+      }
+    },
+    {
+      "name": "Approve Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/approve/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", "approve", ""]
+        }
+      }
+    },
+    {
+      "name": "Reject Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Not suitable\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/reject/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", "reject", ""]
+        }
+      }
+    },
+    {
+      "name": "Soft Delete (Archive) Venue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", ""]
+        }
+      }
+    },
+    {
+      "name": "Hard Delete Venue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/admin/venues/1/hard_delete/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "admin", "venues", "1", "hard_delete", ""]
+        }
+      }
+    }
+  ]
+}
