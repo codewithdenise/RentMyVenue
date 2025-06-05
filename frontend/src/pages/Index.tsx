@@ -109,7 +109,7 @@ const Index = () => {
             <div className="max-w-7xl mx-auto">
               <form
                 onSubmit={handleSearch}
-                className="flex flex-col md:flex-row gap-4 bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-md items-center"
+                className="flex flex-col md:flex-row gap-4 bg-card backdrop-blur-sm p-6 rounded-xl shadow-md items-center"
               >
                 {/* Location */}
                 <div className="flex flex-col flex-grow min-w-[220px]">
@@ -119,7 +119,7 @@ const Index = () => {
                     <Input
                       type="text"
                       placeholder="Location (Tehsil, District, State)"
-                      className="pl-10 w-full h-12 rounded-md border border-gray-300 focus:border-primary focus:ring-1 focus:ring-primary"
+                      className="pl-10 w-full h-12 rounded-md focus:ring-1 focus:ring-primary"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                     />
@@ -131,7 +131,7 @@ const Index = () => {
                 <div className="flex flex-col flex-grow-0 min-w-[140px]">
                   <Button
                     type="submit"
-                    className="w-full px-8 py-3 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    className="w-full px-8 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                     style={{ minHeight: '48px' }}
                   >
                     <Search className="mr-2 h-5 w-5" /> Find Venues

@@ -53,21 +53,33 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
-    role = serializers.ChoiceField(choices=User.Role.choices)
+    role = serializers.ChoiceField(choices=User.Role.choices, required=False)
 
     def validate(self, data):
         email = data.get('email')
         password = data.get('password')
         role = data.get('role')
-        user = authenticate(email=email, password=password)
+
+        # Normalize email before authentication
+        email = User.objects.normalize_email(email)
+    
+        # Try to find user first to debug
+        try:
+            existing_user = User.objects.get(email__iexact=email)
+            print(f"Found user with email: {existing_user.email}")
+        except User.DoesNotExist:
+            print(f"No user found with email: {email}")
+            
+        user = authenticate(username=email, password=password)
         if not user:
             raise serializers.ValidationError("Invalid email or password")
         if not user.is_active:
             raise serializers.ValidationError("User account is disabled.")
-        if hasattr(user, 'email_verified') and not user.email_verified:
-            raise serializers.ValidationError("Email not verified. Please verify your email before login.")
-        if user.role != role:
-            raise serializers.ValidationError(f"User role mismatch. Expected role: {role}.")
+        if not user.is_superuser:
+            if hasattr(user, 'email_verified') and not user.email_verified:
+                raise serializers.ValidationError("Email not verified. Please verify your email before login.")
+            if role is not None and user.role != role:
+                raise serializers.ValidationError(f"User role mismatch. Expected role: {role}.")
         data['user'] = user
         return data
 
@@ -91,6 +103,12 @@ class OTPVerifySerializer(serializers.Serializer):
         cache_key = f"otp_{otp_type}:{email}"
         attempts_key = f"otp_{otp_type}_attempts:{email}"
 
+        # Get the user to check if they are a superuser
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+
         cached_otp = cache.get(cache_key)
         if cached_otp is None:
             raise serializers.ValidationError("OTP expired or invalid. Please request a new code.")
@@ -106,6 +124,12 @@ class OTPVerifySerializer(serializers.Serializer):
         # OTP is correct, invalidate it
         cache.delete(cache_key)
         cache.delete(attempts_key)
+
+        # For superusers, mark email as verified if not already
+        if user.is_superuser and not user.email_verified:
+            user.email_verified = True
+            user.save()
+
         return data
 
 class UserSerializer(serializers.ModelSerializer):

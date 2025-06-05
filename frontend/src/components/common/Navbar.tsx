@@ -100,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             <Input
               type="search"
               placeholder="Search venues..."
-              className="w-full rounded-full bg-background pl-8 pr-4"
+              className="w-full rounded-full bg-secondary pl-8 pr-4"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -216,7 +216,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             <Input
               type="search"
               placeholder="Search venues..."
-              className="w-full rounded-full bg-background pl-8 pr-4"
+              className="w-full rounded-full bg-secondary pl-8 pr-4"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
