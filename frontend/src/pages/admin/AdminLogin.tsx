@@ -1,125 +1,318 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Sun,
+  Moon,
+  Mail,
+  Lock,
+  Shield,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  KeyRound,
+  Building2,
+} from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const AdminLogin: React.FC = () => {
-  const { login, requestOtp, verifyOtp, error, isLoading, clearError } = useAuth();
+  const { login, requestOtp, verifyOtp, error, isLoading, clearError } =
+    useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpForm, setShowOtpForm] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const from = (location.state as any)?.from?.pathname || "/admin/dashboard";
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     clearError();
     try {
-      // First request OTP
-      const otpSent = await requestOtp(email, 'login');
+      const otpSent = await requestOtp(email, "login");
       if (otpSent) {
         setShowOtpForm(true);
       }
-    } catch (err) {
-      // error handled in useAuth
-    }
+    } catch (err) {}
   };
 
   const handleOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     clearError();
     try {
-      // First verify OTP
       const isOtpValid = await verifyOtp(email, otp);
       if (isOtpValid) {
-        // Then complete login
-        await login(email, password, false);
+        await login(email, password, rememberMe);
         navigate(from, { replace: true });
       }
-    } catch (err) {
-      // error handled in useAuth
-    }
+    } catch (err) {}
+  };
+
+  const handleBackToLogin = () => {
+    setShowOtpForm(false);
+    setOtp("");
+    clearError();
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 border rounded-md shadow-sm bg-background text-foreground border-border">
-      <h2 className="text-2xl font-bold mb-4">
-        {showOtpForm ? "Verify OTP" : "Admin Sign In"}
-      </h2>
-      {error && <div className="mb-4 text-red-600">{error}</div>}
-      
-      {showOtpForm ? (
-        <form onSubmit={handleOtpSubmit}>
-          <div className="mb-4">
-            <label htmlFor="otp" className="block mb-1 font-medium">
-              Verification Code
-            </label>
-            <Input
-              id="otp"
-              type="text"
-              placeholder="Enter 6-digit code"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              disabled={isLoading}
-              className="text-center text-lg tracking-widest"
-              maxLength={6}
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              Enter the verification code sent to {email}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card">
+        <div className="flex items-center justify-between p-4">
+          <Link
+            to="/"
+            className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
+          >
+            RentMyVenue
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="rounded-full hover:bg-muted"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex items-center justify-center min-h-[calc(100vh-57px)] p-6 bg-muted/30">
+        <div className="w-full max-w-md">
+          {/* Admin Badge */}
+          <div className="flex justify-center mb-8">
+            <Badge className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground">
+              <Shield className="h-4 w-4 mr-2" />
+              Admin Portal
+            </Badge>
+          </div>
+
+          <Card className="shadow-lg border border-border bg-card">
+            <CardHeader className="space-y-4 pb-6">
+              <div className="flex items-center justify-center">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  {showOtpForm ? (
+                    <KeyRound className="h-8 w-8 text-primary" />
+                  ) : (
+                    <Lock className="h-8 w-8 text-primary" />
+                  )}
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <CardTitle className="text-2xl font-bold text-foreground">
+                  {showOtpForm ? "Verify Your Identity" : "Admin Sign In"}
+                </CardTitle>
+                <CardDescription className="text-base text-muted-foreground">
+                  {showOtpForm
+                    ? "Enter the verification code sent to your email"
+                    : "Sign in to access the admin dashboard"}
+                </CardDescription>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {error && (
+                <Alert
+                  variant="destructive"
+                  className="border-destructive/50 bg-destructive/10"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {showOtpForm && (
+                <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 dark:text-green-400">
+                    Verification code sent to <strong>{email}</strong>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <form
+                onSubmit={showOtpForm ? handleOtpSubmit : handleSubmit}
+                className="space-y-6"
+              >
+                {!showOtpForm ? (
+                  <>
+                    {/* Email Field */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Email Address
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="admin@rentmyvenue.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={isLoading}
+                          required
+                          className="pl-10 h-12 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Password Field */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="password"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          disabled={isLoading}
+                          required
+                          className="pl-10 h-12 bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Remember Me */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="rememberMe"
+                        checked={rememberMe}
+                        onCheckedChange={setRememberMe}
+                        className="border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                      <Label
+                        htmlFor="rememberMe"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
+                      >
+                        Remember me for 30 days
+                      </Label>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* OTP Field */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="otp"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Verification Code
+                      </Label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="otp"
+                          type="text"
+                          placeholder="000000"
+                          value={otp}
+                          onChange={(e) =>
+                            setOtp(
+                              e.target.value.replace(/\D/g, "").slice(0, 6),
+                            )
+                          }
+                          disabled={isLoading}
+                          required
+                          maxLength={6}
+                          className="pl-10 h-12 text-center text-lg font-mono tracking-widest bg-background border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Code expires in 5 minutes
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* Submit Button */}
+                <div className="space-y-3">
+                  {showOtpForm ? (
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleBackToLogin}
+                        disabled={isLoading}
+                        className="flex-1 h-12 border-input hover:bg-muted"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading || otp.length !== 6}
+                        className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        {isLoading ? "Verifying..." : "Verify & Sign In"}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !email || !password}
+                      className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent mr-2" />
+                          Sending Code...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Send Verification Code
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Security Notice */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Secured with multi-factor authentication
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              className="flex-1"
-              onClick={() => setShowOtpForm(false)}
-            >
-              Back
-            </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? "Verifying..." : "Verify & Sign In"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block mb-1 font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="admin@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block mb-1 font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <Button type="submit" disabled={isLoading} className="w-full mt-4">
-            {isLoading ? "Sending OTP..." : "Sign In"}
-          </Button>
-        </form>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

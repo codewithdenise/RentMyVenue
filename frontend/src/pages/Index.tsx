@@ -62,36 +62,43 @@ const Index = () => {
     };
 
     if (carouselRef.current) {
-      carouselRef.current.addEventListener('scroll', checkScroll);
+      carouselRef.current.addEventListener("scroll", checkScroll);
       checkScroll();
     }
 
     return () => {
       if (carouselRef.current) {
-        carouselRef.current.removeEventListener('scroll', checkScroll);
+        carouselRef.current.removeEventListener("scroll", checkScroll);
       }
     };
   }, [featuredVenues]);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -carouselRef.current.clientWidth, behavior: 'smooth' });
+      carouselRef.current.scrollBy({
+        left: -carouselRef.current.clientWidth,
+        behavior: "smooth",
+      });
     }
   };
 
   const scrollRight = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: carouselRef.current.clientWidth, behavior: 'smooth' });
+      carouselRef.current.scrollBy({
+        left: carouselRef.current.clientWidth,
+        behavior: "smooth",
+      });
     }
   };
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section 
+      <section
         className="relative py-20 flex items-center justify-center bg-cover bg-center"
         style={{
-          backgroundImage: 'url("https://cdn.pixabay.com/photo/2017/08/06/12/06/people-2591874_1280.jpg")'
+          backgroundImage:
+            'url("https://cdn.pixabay.com/photo/2017/08/06/12/06/people-2591874_1280.jpg")',
         }}
       >
         {/* Dark overlay */}
@@ -106,16 +113,15 @@ const Index = () => {
             </p>
 
             {/* Search Box */}
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-2xl mx-auto px-4 sm:px-0">
               <form
                 onSubmit={handleSearch}
-                className="flex flex-col md:flex-row gap-4 bg-card backdrop-blur-sm p-6 rounded-xl shadow-md items-center"
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 bg-card backdrop-blur-sm p-4 sm:p-6 rounded-xl shadow-md"
               >
                 {/* Location */}
-                <div className="flex flex-col flex-grow min-w-[220px]">
-                  <div className="relative flex-grow">
+                <div className="flex-1 w-full">
+                  <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-
                     <Input
                       type="text"
                       placeholder="Location (Tehsil, District, State)"
@@ -126,20 +132,16 @@ const Index = () => {
                   </div>
                 </div>
 
-
                 {/* Find Venues Button */}
-                <div className="flex flex-col flex-grow-0 min-w-[140px]">
+                <div className="w-full sm:w-auto flex-shrink-0">
                   <Button
                     type="submit"
-                    className="w-full px-8 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-                    style={{ minHeight: '48px' }}
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 h-12 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                   >
                     <Search className="mr-2 h-5 w-5" /> Find Venues
                   </Button>
                 </div>
               </form>
-
-              {/* Rest of the component JSX */}
             </div>
           </div>
         </div>
@@ -155,8 +157,12 @@ const Index = () => {
             </p>
           </div>
 
-          {loadingFeatured && <p className="text-center">Loading featured venues...</p>}
-          {errorFeatured && <p className="text-red-600 text-center">{errorFeatured}</p>}
+          {loadingFeatured && (
+            <p className="text-center">Loading featured venues...</p>
+          )}
+          {errorFeatured && (
+            <p className="text-red-600 text-center">{errorFeatured}</p>
+          )}
 
           {featuredVenues.length > 0 && (
             <div className="relative">
@@ -192,14 +198,17 @@ const Index = () => {
                 <div className="flex gap-4 pb-4">
                   {/* Featured Venue Cards */}
                   {featuredVenues.map((venue) => (
-                    <div 
-                      key={venue.id} 
+                    <div
+                      key={venue.id}
                       className="flex-none w-80 sm:w-96 lg:w-80 xl:w-96"
                     >
                       <Card className="overflow-hidden border h-full">
                         <div className="relative">
                           <img
-                            src={venue.images?.[0]?.url || "https://source.unsplash.com/random/600x400/?venue,wedding"}
+                            src={
+                              venue.images?.[0]?.url ||
+                              "https://source.unsplash.com/random/600x400/?venue,wedding"
+                            }
                             alt={venue.name}
                             className="w-full h-48 object-cover"
                             onError={(e) => {
@@ -211,9 +220,13 @@ const Index = () => {
                         </div>
                         <CardContent className="p-5">
                           <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-xl font-bold truncate pr-2">{venue.name}</h3>
+                            <h3 className="text-xl font-bold truncate pr-2">
+                              {venue.name}
+                            </h3>
                             <div className="text-lg font-semibold whitespace-nowrap">
-                              ₹{venue.pricePerDay?.toLocaleString("en-IN") || "N/A"}
+                              ₹
+                              {venue.pricePerDay?.toLocaleString("en-IN") ||
+                                "N/A"}
                               <span className="text-sm text-muted-foreground">
                                 /day
                               </span>
