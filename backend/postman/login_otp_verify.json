@@ -1,0 +1,48 @@
+{
+  "info": {
+    "name": "Login OTP Verify",
+    "_postman_id": "login-otp-verify-unique-id",
+    "description": "Verify OTP sent on login to complete authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Verify Login OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"667288\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/login/otp/verify/?type=login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "accounts",
+            "login",
+            "otp",
+            "verify"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "login"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

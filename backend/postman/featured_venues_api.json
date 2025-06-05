@@ -1,0 +1,34 @@
+{
+  "info": {
+    "name": "Featured Venues API Test",
+    "_postman_id": "12345678-abcd-efgh-ijkl-1234567890ab",
+    "description": "Test collection for the featured venues API endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Featured Venues",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/featured-venues/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "featured-venues",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "info": {
+    "name": "Signup OTP Verify",
+    "_postman_id": "signup-otp-verify-unique-id",
+    "description": "Verify OTP sent on signup to activate account",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Verify Signup OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"hardiksaraf18@gmail.com\",\n  \"otp\": \"118034\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/login/otp/verify/?type=signup",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "accounts",
+            "login",
+            "otp",
+            "verify"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "signup"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

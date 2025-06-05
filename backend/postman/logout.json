@@ -1,0 +1,44 @@
+{
+  "info": {
+    "name": "Logout",
+    "_postman_id": "logout-unique-id",
+    "description": "Logout by blacklisting the refresh token",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2NTYwMjMxLCJpYXQiOjE3NDY1NTkzMzEsImp0aSI6IjJhMGU1N2U1MjZlMzRkODhhODZjZWMyNDk5NmUyMzVlIiwidXNlcl9pZCI6Mn0.YFIwnJbsFdCq_aJAzej_aMmYXXtkd_ykCOBgsiC6jMI"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0NzE2NDEzMSwiaWF0IjoxNzQ2NTU5MzMxLCJqdGkiOiJmOWE2N2U0YWI2Y2M0MzIyYWEyMDE4Njk4OWY5ZjlmMSIsInVzZXJfaWQiOjJ9.WsvLzLopBVqbS2ilkqjpBTXes5f9O7oIvr08nLVImMo\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/logout/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "accounts",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

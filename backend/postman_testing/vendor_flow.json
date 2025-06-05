@@ -1,0 +1,193 @@
+{
+  "info": {
+    "name": "Vendor Complete Flow",
+    "description": "Complete vendor API flow including sign up, OTP verification, sign in, venue CRUD, submit for approval, unlist, relist, and soft delete.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Vendor Sign Up",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vendor@example.com\",\n  \"password\": \"vendorpassword\",\n  \"role\": \"Vendor\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/register/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "accounts", "register"]
+        }
+      }
+    },
+    {
+      "name": "Vendor OTP Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"vendor@example.com\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/login/otp/verify/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "accounts", "login", "otp", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Vendor Sign In",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+"raw": "{\n  \"email\": \"hardikaws2@gmail.com\",\n  \"password\": \"hardik@1996\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/accounts/login/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "accounts", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.environment.set(\"vendor_token\", jsonData.access);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Own Venues",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", ""]
+        }
+      }
+    },
+    {
+      "name": "Create Venue (Draft)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vendor Test Venue\",\n  \"category\": 1,\n  \"tehsil\": 1,\n  \"address_line\": \"123 Vendor Street\",\n  \"pincode\": \"654321\",\n  \"capacity\": 150,\n  \"is_ac\": false,\n  \"indoor_outdoor\": \"outdoor\",\n  \"amenities\": [1],\n  \"description\": \"A vendor test venue.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", ""]
+        }
+      }
+    },
+    {
+      "name": "Update Venue",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated by vendor.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/1/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", "1", ""]
+        }
+      }
+    },
+    {
+      "name": "Submit Venue for Approval",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/1/submit/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", "1", "submit", ""]
+        }
+      }
+    },
+    {
+      "name": "Unlist Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/1/unlist/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", "1", "unlist", ""]
+        }
+      }
+    },
+    {
+      "name": "Relist Venue",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/1/relist/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", "1", "relist", ""]
+        }
+      }
+    },
+    {
+      "name": "Soft Delete (Archive) Venue",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{vendor_token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/vendor/venues/1/",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "vendor", "venues", "1", ""]
+        }
+      }
+    }
+  ]
+}
