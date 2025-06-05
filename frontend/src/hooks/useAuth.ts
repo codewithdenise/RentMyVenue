@@ -9,6 +9,11 @@ interface UseAuthOptions {
   requireRole?: UserRole | UserRole[];
 }
 
+interface LoginResponse {
+  user: User;
+  token: string;
+}
+
 interface UseAuthReturn {
   user: User | null;
   isAuthenticated: boolean;
@@ -20,9 +25,9 @@ interface UseAuthReturn {
     password: string,
     name: string,
     role: UserRole,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
-  requestOtp: (email: string) => Promise<boolean>;
+  requestOtp: (email: string, type?: 'login' | 'signup') => Promise<boolean>;
   verifyOtp: (email: string, otp: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, password: string) => Promise<boolean>;
@@ -44,7 +49,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         const response = await authService.getCurrentUser();
 
         if (response.success && response.data) {
-          setUser(response.data);
+          setUser(response.data as User);
           setIsAuthenticated(true);
 
           // Handle redirect for authenticated users
@@ -83,11 +88,14 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         ? options.requireRole
         : [options.requireRole];
 
-      if (!requiredRoles.includes(user.role)) {
+      // Type assertion for user to User type to access role safely
+      const currentUser = user as User;
+
+      if (!requiredRoles.includes(currentUser.role)) {
         // Redirect to appropriate dashboard based on user role
-        if (user.role === "admin") {
+        if (currentUser.role === "admin") {
           navigate("/admin/dashboard");
-        } else if (user.role === "vendor") {
+        } else if (currentUser.role === "vendor") {
           navigate("/vendor/dashboard");
         } else {
           navigate("/user/dashboard");
@@ -95,6 +103,8 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       }
     }
   }, [isLoading, isAuthenticated, user, options.requireRole, navigate]);
+
+
 
   const login = useCallback(
     async (
@@ -112,19 +122,25 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           remember,
         });
 
-        if (response.success && response.data) {
-          setUser(response.data.user);
+        if (
+          response.success &&
+          response.data &&
+          typeof response.data === "object" &&
+          "user" in response.data &&
+          "token" in response.data
+        ) {
+          setUser(response.data.user as User);
           setIsAuthenticated(true);
 
           // Store token based on remember preference
           if (remember) {
-            localStorage.setItem("rentmyvenue_token", response.data.token);
+            localStorage.setItem("rentmyvenue_token", response.data.token as string);
             localStorage.setItem(
               "rentmyvenue_user",
               JSON.stringify(response.data.user),
             );
           } else {
-            sessionStorage.setItem("rentmyvenue_token", response.data.token);
+            sessionStorage.setItem("rentmyvenue_token", response.data.token as string);
             sessionStorage.setItem(
               "rentmyvenue_user",
               JSON.stringify(response.data.user),
@@ -132,9 +148,10 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           }
 
           // Navigate based on role
-          if (response.data.user.role === "admin") {
+          const userData = response.data as LoginResponse;
+          if (userData.user.role === "admin") {
             navigate("/admin/dashboard");
-          } else if (response.data.user.role === "vendor") {
+          } else if (userData.user.role === "vendor") {
             navigate("/vendor/dashboard");
           } else {
             navigate("/user/dashboard");
@@ -157,7 +174,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       password: string,
       name: string,
       role: UserRole,
-    ): Promise<void> => {
+    ): Promise<boolean> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -169,34 +186,30 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           role,
         });
 
-        if (response.success && response.data) {
-          setUser(response.data.user);
-          setIsAuthenticated(true);
-
-          // Store auth token
-          localStorage.setItem("rentmyvenue_token", response.data.token);
-          localStorage.setItem(
-            "rentmyvenue_user",
-            JSON.stringify(response.data.user),
-          );
-
-          // Navigate based on role
-          if (role === "vendor") {
-            navigate("/vendor/dashboard");
-          } else {
-            navigate("/user/dashboard");
-          }
+        if (
+          response.success &&
+          response.data &&
+          typeof response.data === "object"
+        ) {
+          // Registration successful
+          return true;
+        } else if (response.error && typeof response.error === "string") {
+          setError(response.error);
+          return false;
         } else {
-          setError(response.error || "Registration failed");
+          setError("Registration failed");
+          return false;
         }
       } catch (err) {
         setError("An error occurred during registration");
+        return false;
       } finally {
         setIsLoading(false);
       }
     },
     [navigate],
   );
+
 
   const logout = useCallback(async (): Promise<void> => {
     try {
@@ -222,17 +235,20 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     }
   }, [navigate]);
 
-  const requestOtp = useCallback(async (email: string): Promise<boolean> => {
+  const requestOtp = useCallback(async (email: string, type: 'login' | 'signup' = 'signup'): Promise<boolean> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // In a real app, this would call the API to send OTP
-      const response = await authService.requestOtp(email);
+      // Call the API to send OTP
+      const response = await authService.requestOtp(email, type);
 
-      // For the sake of the demo, we'll always return success
-      // In a real app, you'd check the response
-      return true;
+      if (response.success) {
+        return true;
+      } else {
+        setError(response.error || "Failed to send verification code");
+        return false;
+      }
     } catch (err) {
       setError("Failed to send verification code");
       return false;
@@ -247,15 +263,18 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         setIsLoading(true);
         setError(null);
 
-        // In a real app, this would call the API to verify OTP
+        // Call the API to verify OTP
         const response = await authService.verifyOtp({
           email,
           otp,
         });
 
-        // For the sake of the demo, we'll accept any 6-digit OTP
-        // In a real app, you'd check the API response
-        return otp.length === 6 && /^\d+$/.test(otp);
+        if (response.success) {
+          return true;
+        } else {
+          setError(response.error || "Invalid verification code");
+          return false;
+        }
       } catch (err) {
         setError("Failed to verify code");
         return false;

@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthModalType } from "@/components/auth/AuthModals";
 
 interface BecomeHostProps {
-  openAuthModal: (type: AuthModalType) => void;
+  openAuthModal: (type: AuthModalType, signupRole?: "user" | "vendor") => void;
 }
 
 const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
@@ -65,7 +65,7 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
   ];
 
   const handleSignUp = () => {
-    openAuthModal("signup");
+    openAuthModal("signup", "vendor");
   };
 
   const handleGoToDashboard = () => {
@@ -84,9 +84,9 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              'url("https://source.unsplash.com/random/1920x1080/?wedding,venue,mansion")',
+            backgroundImage: `url("https://source.unsplash.com/featured/?indian,wedding,venue")`,
             backgroundPosition: "center",
+            backgroundSize: "cover",
           }}
         >
           <div className="absolute inset-0 bg-black/50"></div>
