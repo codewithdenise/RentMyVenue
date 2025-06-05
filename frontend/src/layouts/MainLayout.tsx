@@ -6,12 +6,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { AuthModalType } from "@/components/auth/AuthModals";
 
 type MainLayoutContext = {
-  openAuthModal: (type: AuthModalType) => void;
+  openAuthModal: (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => void;
 };
 
 interface MainLayoutProps {
   children?: React.ReactNode;
-  onOpenAuthModal?: (type: AuthModalType) => void;
+  onOpenAuthModal?: (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => void;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({

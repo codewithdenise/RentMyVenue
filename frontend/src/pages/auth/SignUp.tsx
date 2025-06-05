@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import authService from "@/services/authService";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserRole } from "@/types";
 
@@ -56,9 +58,10 @@ const formSchema = z
   });
 
 const SignUp: React.FC = () => {
-  const { register, error, isLoading, clearError } = useAuth({
+  const { register, error: authError, isLoading, clearError } = useAuth({
     redirectIfAuthenticated: "/user/dashboard",
   });
+
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -86,36 +89,50 @@ const SignUp: React.FC = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     clearError();
 
-    // In a real app with 2FA, we would send OTP before registration
-    // For demo, we'll just show the OTP form
-    setRegistrationData({
-      email: values.email,
-      password: values.password,
-      name: values.name,
-      role: values.role as UserRole,
-    });
-    setShowOtpForm(true);
+    // Register the user
+    await register(
+      values.email,
+      values.password,
+      values.name,
+      values.role as UserRole
+    );
+
+    if (!authError) {
+      // Set registration data and show OTP form only if registration is successful
+      setRegistrationData({
+        email: values.email,
+        password: values.password,
+        name: values.name,
+        role: values.role as UserRole,
+      });
+      setOtp(""); // Reset OTP input to empty string
+      setShowOtpForm(true);
+    }
   };
 
-  const verifyOtp = async () => {
-    // In a real implementation, this would call the API to verify the OTP
-    if (otp.length === 6 && registrationData) {
-      // After OTP verification, complete registration
-      await register(
-        registrationData.email,
-        registrationData.password,
-        registrationData.name,
-        registrationData.role,
-      );
 
-      // Navigate based on role
-      if (registrationData.role === "vendor") {
-        navigate("/vendor/dashboard");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+
+  const verifyOtp = async () => {
+    if (otp.length === 6 && registrationData) {
+      const response = await authService.verifyOtp(
+        { email: registrationData.email, otp },
+        'signup'
+      );
+      if (response.success) {
+        // On successful OTP verification, show success modal
+        setShowSuccessModal(true);
       } else {
-        navigate("/user/dashboard");
+        // Handle error (optional)
+        // e.g. show error message
+        setOtpError("Invalid OTP. Please try again.");
       }
     }
   };
+
+
+
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -137,51 +154,74 @@ const SignUp: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
+          {(authError || otpError) && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{authError || otpError}</AlertDescription>
             </Alert>
           )}
 
+
+
           {showOtpForm ? (
-            <div className="space-y-4">
-              <div className="text-center mb-4">
+            showSuccessModal ? (
+              <div className="space-y-4 text-center">
+                <h3 className="text-xl font-semibold">Registration Successful!</h3>
                 <p className="text-sm text-muted-foreground">
-                  We've sent a verification code to {registrationData?.email}
+                  Your account has been created. Please sign in to continue.
                 </p>
-              </div>
-              <div className="grid gap-2">
-                <FormLabel htmlFor="otp">Verification Code</FormLabel>
-                <Input
-                  id="otp"
-                  placeholder="Enter 6-digit code"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="text-center text-lg tracking-widest"
-                  maxLength={6}
-                />
-              </div>
-              <Button
-                type="button"
-                className="w-full"
-                onClick={verifyOtp}
-                disabled={otp.length !== 6 || isLoading}
-              >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Verify & Create Account
-              </Button>
-              <div className="text-center mt-4">
                 <Button
-                  variant="link"
                   type="button"
-                  className="text-sm"
-                  onClick={() => setShowOtpForm(false)}
+                  className="w-full"
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    navigate('/auth/sign-in');
+                  }}
                 >
-                  Back to Sign Up
+                  Go to Sign In
                 </Button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a verification code to {registrationData?.email}
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <FormLabel htmlFor="otp">Verification Code</FormLabel>
+                  <Input
+                    id="otp"
+                    placeholder="Enter 6-digit code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="text-center text-lg tracking-widest"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={verifyOtp}
+                  disabled={otp.length !== 6 || isLoading}
+                >
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Verify & Create Account
+                </Button>
+                <div className="text-center mt-4">
+                  <Button
+                    variant="link"
+                    type="button"
+                    className="text-sm"
+                    onClick={() => setShowOtpForm(false)}
+                  >
+                    Back to Sign Up
+                  </Button>
+                </div>
+              </div>
+            )
           ) : (
+
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}

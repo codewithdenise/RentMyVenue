@@ -18,18 +18,49 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Public endpoints to list and retrieve published venues and related data.
     """
-    queryset = Venue.objects.filter(status=Venue.Status.PUBLISHED)
+    queryset = Venue.objects.filter(status='Published')
     serializer_class = VenueListSerializer
     permission_classes = [AllowAny]
+    pagination_class = None  # We'll use custom pagination if needed
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return VenueDetailSerializer
         return VenueListSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            # Try to get the venue regardless of status
+            venue = Venue.objects.get(pk=kwargs['pk'])
+            print(f"DEBUG: Retrieved venue {venue.id} with status {venue.status}")
+            if venue.status != 'Published':
+                print(f"DEBUG: Venue {venue.id} status is not published: {venue.status}")
+                return Response(
+                    {
+                        'detail': 'This venue is currently not available.',
+                        'status': venue.status
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            # If published, proceed with normal retrieval
+            return super().retrieve(request, *args, **kwargs)
+        except Venue.DoesNotExist:
+            print(f"DEBUG: Venue with id {kwargs['pk']} does not exist")
+            return Response(
+                {'detail': 'Venue not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Apply filters from query params
+        queryset = queryset.select_related('category', 'state', 'district', 'tehsil')\
+                           .prefetch_related('images', 'amenities')
+
+        # If this is a retrieve action, return the full queryset
+        if self.action == 'retrieve':
+            return queryset
+
+        # Apply filters from query params for list action
         state_id = self.request.query_params.get('state')
         district_id = self.request.query_params.get('district')
         category_id = self.request.query_params.get('category')
@@ -65,11 +96,43 @@ class PublicVenueViewSet(viewsets.ReadOnlyModelViewSet):
             amenity_names = [a.strip() for a in amenities.split(',')]
             for amenity_name in amenity_names:
                 queryset = queryset.filter(amenities__name__iexact=amenity_name)
-        return queryset.distinct()
+        
+        # Only apply limit for list action
+        return queryset.distinct()[:20]
+
+    @action(detail=True, methods=['get'])
+    def booked_dates(self, request, pk=None):
+        """
+        Return a list of booked date ranges for the venue.
+        """
+        from bookings.models import Booking
+        from django.utils.timezone import make_aware
+        import datetime
+
+        venue = self.get_object()
+        # Get bookings with status HELD or CONFIRMED
+        bookings = Booking.objects.filter(
+            venue=venue,
+            status__in=[Booking.Status.HELD, Booking.Status.CONFIRMED]
+        )
+
+        # Collect booked date ranges as list of dicts with start and end dates in ISO format
+        booked_ranges = []
+        for booking in bookings:
+            start_date = booking.start_datetime.date()
+            end_date = booking.end_datetime.date()
+            booked_ranges.append({
+                'start': start_date.isoformat(),
+                'end': end_date.isoformat()
+            })
+
+        return Response({'booked_ranges': booked_ranges})
+
 
 class FeaturedVenueListView(generics.ListAPIView):
     serializer_class = VenueListSerializer
     permission_classes = [AllowAny]
+    pagination_class = None  # We'll use custom pagination if needed
 
     def get_queryset(self):
         today = timezone.now().date()
@@ -78,7 +141,12 @@ class FeaturedVenueListView(generics.ListAPIView):
             featured_from__lte=today,
         ).filter(
             Q(featured_until__isnull=True) | Q(featured_until__gte=today)
-        ).order_by('featured_priority', 'name')
+        ).select_related('category', 'state', 'district', 'tehsil')\
+         .prefetch_related('images', 'amenities')\
+         .only('id', 'name', 'address_line', 'capacity', 'is_ac', 'indoor_outdoor', 'category', 'state', 'district', 'tehsil', 'images', 'amenities')\
+         .order_by('featured_priority', 'name')[:20]  # Limit to 20 for performance
+
+
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.filter(is_active=True)
@@ -123,18 +191,18 @@ class VendorVenueViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == User.Role.ADMIN:
             return Venue.objects.all()
-        return Venue.objects.filter(owner=user).exclude(status=Venue.Status.ARCHIVED)
+        return Venue.objects.filter(owner=user).exclude(status='Archived')
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user, status=Venue.Status.DRAFT)
+        serializer.save(owner=self.request.user, status='Draft')
 
     def perform_update(self, serializer):
         instance = serializer.instance
         old_status = instance.status
         serializer.save()
         # If vendor edits a published venue, set status to pending for re-approval
-        if old_status == Venue.Status.PUBLISHED and self.request.user.role == User.Role.VENDOR:
-            instance.status = Venue.Status.PENDING
+        if old_status == 'Published' and self.request.user.role == User.Role.VENDOR:
+            instance.status = 'Pending'
             instance.last_status_changed_at = timezone.now()
             instance.save()
             # Log audit
@@ -142,13 +210,13 @@ class VendorVenueViewSet(viewsets.ModelViewSet):
                 venue=instance,
                 user=self.request.user,
                 action='STATUS_CHANGE',
-                changed_fields={'status': f'{Venue.Status.PUBLISHED} -> {Venue.Status.PENDING}'}
+        changed_fields={'status': 'Published -> Pending'}
             )
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         venue = self.get_object()
-        if venue.status not in [Venue.Status.DRAFT, Venue.Status.REJECTED]:
+        if venue.status not in ['Draft', 'Rejected']:
             return Response({'detail': 'Venue cannot be submitted from current status.'}, status=status.HTTP_400_BAD_REQUEST)
         # Validate required fields before submission
         required_fields = ['name', 'category', 'address_line', 'tehsil', 'pincode', 'capacity']
@@ -157,7 +225,7 @@ class VendorVenueViewSet(viewsets.ModelViewSet):
             return Response({'detail': f'Missing required fields: {", ".join(missing_fields)}'}, status=status.HTTP_400_BAD_REQUEST)
         if venue.images.count() == 0:
             return Response({'detail': 'At least one image is required before submission.'}, status=status.HTTP_400_BAD_REQUEST)
-        venue.status = Venue.Status.PENDING
+        venue.status = 'Pending'
         venue.last_status_changed_at = timezone.now()
         venue.save()
         # Log audit
@@ -165,45 +233,45 @@ class VendorVenueViewSet(viewsets.ModelViewSet):
             venue=venue,
             user=request.user,
             action='STATUS_CHANGE',
-            changed_fields={'status': f'{Venue.Status.DRAFT} -> {Venue.Status.PENDING}'}
+        changed_fields={'status': 'Draft -> Pending'}
         )
         return Response({'detail': 'Venue submitted for approval.'})
 
     @action(detail=True, methods=['post'])
     def unlist(self, request, pk=None):
         venue = self.get_object()
-        if venue.status != Venue.Status.PUBLISHED:
+        if venue.status != 'Published':
             return Response({'detail': 'Only published venues can be unlisted.'}, status=status.HTTP_400_BAD_REQUEST)
-        venue.status = Venue.Status.UNLISTED
+        venue.status = 'Unlisted'
         venue.last_status_changed_at = timezone.now()
         venue.save()
         AuditLog.objects.create(
             venue=venue,
             user=request.user,
             action='STATUS_CHANGE',
-            changed_fields={'status': f'{Venue.Status.PUBLISHED} -> {Venue.Status.UNLISTED}'}
+        changed_fields={'status': 'Published -> Unlisted'}
         )
         return Response({'detail': 'Venue unlisted successfully.'})
 
     @action(detail=True, methods=['post'])
     def relist(self, request, pk=None):
         venue = self.get_object()
-        if venue.status != Venue.Status.UNLISTED:
+        if venue.status != 'Unlisted':
             return Response({'detail': 'Only unlisted venues can be relisted.'}, status=status.HTTP_400_BAD_REQUEST)
-        venue.status = Venue.Status.PUBLISHED
+        venue.status = 'Published'
         venue.last_status_changed_at = timezone.now()
         venue.save()
         AuditLog.objects.create(
             venue=venue,
             user=request.user,
             action='STATUS_CHANGE',
-            changed_fields={'status': f'{Venue.Status.UNLISTED} -> {Venue.Status.PUBLISHED}'}
+        changed_fields={'status': 'Unlisted -> Published'}
         )
         return Response({'detail': 'Venue relisted successfully.'})
 
     def destroy(self, request, *args, **kwargs):
         venue = self.get_object()
-        venue.status = Venue.Status.ARCHIVED
+        venue.status = 'Archived'
         venue.deleted_at = timezone.now()
         venue.save()
         AuditLog.objects.create(
@@ -234,9 +302,9 @@ class AdminVenueViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         venue = self.get_object()
-        if venue.status != Venue.Status.PENDING:
+        if venue.status != 'Pending':
             return Response({'detail': 'Only pending venues can be approved.'}, status=status.HTTP_400_BAD_REQUEST)
-        venue.status = Venue.Status.PUBLISHED
+        venue.status = 'Published'
         venue.last_status_changed_at = timezone.now()
         venue.last_rejection_reason = None
         venue.save()
@@ -244,17 +312,17 @@ class AdminVenueViewSet(viewsets.ModelViewSet):
             venue=venue,
             user=request.user,
             action='STATUS_CHANGE',
-            changed_fields={'status': f'{Venue.Status.PENDING} -> {Venue.Status.PUBLISHED}'}
+        changed_fields={'status': 'Pending -> Published'}
         )
         return Response({'detail': 'Venue approved and published.'})
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         venue = self.get_object()
-        if venue.status != Venue.Status.PENDING:
+        if venue.status != 'Pending':
             return Response({'detail': 'Only pending venues can be rejected.'}, status=status.HTTP_400_BAD_REQUEST)
         reason = request.data.get('reason', '')
-        venue.status = Venue.Status.REJECTED
+        venue.status = 'Rejected'
         venue.last_rejection_reason = reason
         venue.last_status_changed_at = timezone.now()
         venue.save()
@@ -262,7 +330,7 @@ class AdminVenueViewSet(viewsets.ModelViewSet):
             venue=venue,
             user=request.user,
             action='STATUS_CHANGE',
-            changed_fields={'status': f'{Venue.Status.PENDING} -> {Venue.Status.REJECTED}', 'reason': reason}
+        changed_fields={'status': 'Pending -> Rejected', 'reason': reason}
         )
         return Response({'detail': 'Venue rejected.', 'reason': reason})
 

@@ -57,7 +57,7 @@ const signUpFormSchema = z
           "Password must contain at least one uppercase letter, one lowercase letter, and one number",
       }),
     confirmPassword: z.string(),
-    role: z.enum(["user", "vendor"]),
+    role: z.enum(["user", "vendor", "admin"] as const),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -72,14 +72,19 @@ const otpFormSchema = z.object({
     .regex(/^\d+$/, { message: "OTP must contain only digits" }),
 });
 
-export type AuthModalType = "signin" | "signup" | "none";
+export type AuthModalType = "login" | "signup" | "none";
 
 interface AuthModalsProps {
   open: AuthModalType;
   onOpenChange: (open: AuthModalType) => void;
+  signupRole?: UserRole; // New prop to fix signup role, default "user"
 }
 
-const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
+const AuthModals: React.FC<AuthModalsProps> = ({
+  open,
+  onOpenChange,
+  signupRole = "user",
+}) => {
   const {
     login,
     register,
@@ -95,7 +100,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<UserRole>("user");
+  // Remove role state, use signupRole prop instead
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -116,7 +121,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "user",
+      role: signupRole, // Set the role from props
     },
   });
 
@@ -134,9 +139,15 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     setEmail(values.email);
     setPassword(values.password);
 
+    // Prevent admin login from modal
+    if (values.email.toLowerCase().includes("admin")) {
+      clearError();
+      return;
+    }
+
     try {
-      // First, attempt to send OTP
-      const otpSent = await requestOtp(values.email);
+      // First, attempt to send OTP for login
+      const otpSent = await requestOtp(values.email, 'login');
 
       if (otpSent) {
         setShowOtpForm(true);
@@ -149,17 +160,24 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
   const handleSignUpSubmit = async (
     values: z.infer<typeof signUpFormSchema>,
   ) => {
-    clearError();
-    setEmail(values.email);
-    setPassword(values.password);
-    setName(values.name);
-    setRole(values.role as UserRole);
-
     try {
-      // First, attempt to send OTP
-      const otpSent = await requestOtp(values.email);
+      clearError();
+      
+      // Store form data for OTP verification
+      setEmail(values.email);
+      setPassword(values.password);
+      setName(values.name);
+
+      // First validate the form data
+      if (!values.email || !values.password || !values.name) {
+        return;
+      }
+
+      // Send OTP for verification
+      const otpSent = await requestOtp(values.email, 'signup');
 
       if (otpSent) {
+        // Show OTP form if OTP was sent successfully
         setShowOtpForm(true);
       }
     } catch (err) {
@@ -169,21 +187,26 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
 
   const handleOtpSubmit = async (values: z.infer<typeof otpFormSchema>) => {
     try {
+      clearError();
       // First verify the OTP
       const isOtpValid = await verifyOtp(email, values.otp);
 
       if (isOtpValid) {
-        if (open === "signin") {
+        if (open === "login") {
           // Complete the sign in process
           await login(email, password, signInForm.getValues().remember);
+          resetForms();
+          onOpenChange("none");
         } else if (open === "signup") {
-          // Complete the sign up process
-          await register(email, password, name, role);
+          // Complete the sign up process with fixed role
+          const registered = await register(email, password, name, signupRole);
+          
+          if (registered) {
+            // Switch to login modal after successful registration
+            resetForms();
+            onOpenChange("login");
+          }
         }
-
-        // Close the modal and reset states
-        resetForms();
-        onOpenChange("none");
       }
     } catch (err) {
       console.error("OTP verification failed:", err);
@@ -198,7 +221,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     setEmail("");
     setPassword("");
     setName("");
-    setRole("user");
+    // No role state to reset
   };
 
   const handleModalClose = () => {
@@ -218,8 +241,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
     <>
       {/* Sign In Modal */}
       <Dialog
-        open={open === "signin"}
-        onOpenChange={(isOpen) => onOpenChange(isOpen ? "signin" : "none")}
+        open={open === "login"}
+        onOpenChange={(isOpen) => onOpenChange(isOpen ? "login" : "none")}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -550,35 +573,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={signUpForm.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select account type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="user">
-                            I want to book venues
-                          </SelectItem>
-                          <SelectItem value="vendor">
-                            I want to list my venue
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Removed role selection */}
                 <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2">
                   <Button
                     type="button"
@@ -586,7 +581,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({ open, onOpenChange }) => {
                     className="px-0"
                     onClick={() => {
                       handleModalClose();
-                      onOpenChange("signin");
+                      onOpenChange("login");
                     }}
                   >
                     Already have an account? Sign In
