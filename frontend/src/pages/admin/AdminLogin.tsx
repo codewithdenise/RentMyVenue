@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import authService from "@/services/authService";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ import {
 import { useTheme } from "@/contexts/ThemeContext";
 
 const AdminLogin: React.FC = () => {
-  const { login, requestOtp, verifyOtp, error, isLoading, clearError } =
+  const { login, requestOtp, verifyOtp, logout, error, isLoading, clearError } =
     useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +41,7 @@ const AdminLogin: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const from = (location.state as any)?.from?.pathname || "/admin/dashboard";
 
@@ -51,7 +53,8 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     clearError();
     try {
-      const otpSent = await requestOtp(email, "login");
+      // Request OTP for login (no extra role argument)
+      const otpSent = await requestOtp(email, password, "login");
       if (otpSent) {
         setShowOtpForm(true);
       }
@@ -61,13 +64,26 @@ const AdminLogin: React.FC = () => {
   const handleOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     clearError();
+    setLocalError(null);
     try {
-      const isOtpValid = await verifyOtp(email, otp);
-      if (isOtpValid) {
-        await login(email, password, rememberMe);
-        navigate(from, { replace: true });
+      // Call authService directly to get the response with tokens
+      const response = await authService.verifyOtp({ email, otp }, 'login');
+      if (response.success && response.data.user) {
+        if (response.data.user.role === "admin") {
+          // Store tokens and user data (already handled by authService.verifyOtp)
+          navigate(from, { replace: true });
+        } else {
+          // If not admin, logout and show error
+          setLocalError("Access denied. Admin privileges required.");
+          await logout();
+          setShowOtpForm(false);
+          setOtp("");
+        }
       }
-    } catch (err) {}
+    } catch (err) {
+      // Handle any other errors
+      setLocalError("Failed to verify OTP. Please try again.");
+    }
   };
 
   const handleBackToLogin = () => {
@@ -137,13 +153,13 @@ const AdminLogin: React.FC = () => {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {error && (
+              {(error || localError) && (
                 <Alert
                   variant="destructive"
                   className="border-destructive/50 bg-destructive/10"
                 >
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{error || localError}</AlertDescription>
                 </Alert>
               )}
 
@@ -213,7 +229,7 @@ const AdminLogin: React.FC = () => {
                       <Checkbox
                         id="rememberMe"
                         checked={rememberMe}
-                        onCheckedChange={setRememberMe}
+                        onCheckedChange={(checked) => setRememberMe(checked === true)}
                         className="border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <Label
