@@ -1,21 +1,50 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import authService from '@/services/authService';
 
-const RequireAdminAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+interface RequireAdminAuthProps {
+  children: React.ReactNode;
+}
+
+export const RequireAdminAuth: React.FC<RequireAdminAuthProps> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      if (isLoading) return;
+
+      try {
+        if (!isAuthenticated) {
+          navigate('/admin-login', { state: { from: location } });
+          return;
+        }
+
+        if (user?.role.toLowerCase() !== 'admin') {
+          navigate('/', { replace: true });
+          return;
+        }
+      } catch (error) {
+        console.error('Admin access check failed:', error);
+        navigate('/admin-login', { state: { from: location } });
+      }
+    };
+
+    checkAdminAccess();
+  }, [isAuthenticated, isLoading, user, navigate, location]);
+
+  if (isLoading || isRefreshing) {
+    return null;
   }
 
-  if (!isAuthenticated || !user || user.role !== "admin") {
-    // Redirect to admin login page or main login page
-    return <Navigate to="/admin-login" state={{ from: location }} replace />;
+  if (isAuthenticated && user?.role.toLowerCase() === 'admin') {
+    return <>{children}</>;
   }
 
-  return children;
+  return null;
 };
 
 export default RequireAdminAuth;

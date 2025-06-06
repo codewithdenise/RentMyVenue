@@ -28,9 +28,10 @@ import BookingConfirmation from "@/pages/venues/BookingConfirmation";
 import UserDashboard from "@/pages/user/UserDashboard";
 import UserBookings from "@/pages/user/UserBookings";
 import VendorDashboard from "@/pages/vendor/VendorDashboard";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
+import SharedDashboard from "@/pages/shared/SharedDashboard";
 import AdminLogin from "@/pages/admin/AdminLogin";
-import RequireAdminAuth from "@/components/auth/RequireAdminAuth";
+import { RequireAuthRole } from "@/components/auth/RequireAuthRole";
+
 import BecomeHost from "@/pages/BecomeHost";
 
 type AuthModalState = {
@@ -162,9 +163,9 @@ const App = () => {
                     />
                   </Route>
 
-                  {/* Vendor Dashboard Routes */}
+                  {/* Vendor and Admin Shared Dashboard Routes */}
                   <Route path="/vendor" element={<DashboardLayout />}>
-                    <Route path="dashboard" element={<VendorDashboard />} />
+                    <Route path="dashboard" element={<SharedDashboard />} />
                     <Route
                       path="venues"
                       element={<div>Venue Management (Coming Soon)</div>}
@@ -187,17 +188,16 @@ const App = () => {
                     />
                   </Route>
 
-                  {/* Admin Dashboard Routes */}
                   <Route path="/admin-login" element={<AdminLogin />} />
                   <Route
                     path="/admin"
                     element={
-                      <RequireAdminAuth>
+                      <RequireAuthRole allowedRoles={['admin', 'vendor']}>
                         <DashboardLayout />
-                      </RequireAdminAuth>
+                      </RequireAuthRole>
                     }
                   >
-                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="dashboard" element={<SharedDashboard />} />
                     <Route
                       path="users"
                       element={<div>User Management (Coming Soon)</div>}
@@ -215,6 +215,7 @@ const App = () => {
                       element={<div>Admin Settings (Coming Soon)</div>}
                     />
                   </Route>
+
 
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />

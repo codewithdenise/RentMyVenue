@@ -105,12 +105,18 @@ const authService = {
     }
   },
 
+  // Helper to set tokens in localStorage
+  setTokens: (access: string, refresh: string) => {
+    localStorage.setItem("rentmyvenue_token", access);
+    localStorage.setItem("rentmyvenue_refresh_token", refresh);
+  },
+
   // Login user (step 1: verify password and send OTP)
   login: async (
     credentials: LoginCredentials,
   ): Promise<ApiResponse<{ message: string }>> => {
     try {
-      const response = await api.post<{ detail: string }>(
+      const response = await api.post<{ detail: string; access?: string; refresh?: string }>(
         "/api/accounts/login/",
         {
           email: credentials.email,
@@ -119,6 +125,10 @@ const authService = {
       );
 
       if (response.success && response.data) {
+        // If tokens are returned here (some APIs might), store them
+        if (response.data.access && response.data.refresh) {
+          authService.setTokens(response.data.access, response.data.refresh);
+        }
         return {
           success: true,
           data: {
@@ -139,6 +149,7 @@ const authService = {
     }
   },
 
+
   // Verify OTP code (step 2: complete login or signup)
   verifyOtp: async (
     data: OtpVerificationData,
@@ -146,7 +157,7 @@ const authService = {
   ): Promise<ApiResponse<{ user?: User; token?: string; message: string }>> => {
     try {
       const response = await api.post<OtpVerifyResponse>(
-        `/api/accounts/otp-verify/?type=${type}`,
+        `/api/accounts/login/otp/verify/`,
         {
           email: data.email,
           otp: data.otp,
@@ -155,10 +166,9 @@ const authService = {
 
       if (response.success && response.data) {
         if (type === 'login' && response.data.access && response.data.user) {
-          // Store tokens
-          localStorage.setItem("rentmyvenue_token", response.data.access);
-          localStorage.setItem("rentmyvenue_refresh_token", response.data.refresh || '');
-          
+          // Store tokens using helper
+          authService.setTokens(response.data.access, response.data.refresh || '');
+
           // Store user data
           const userData = {
             id: response.data.user.id,
@@ -200,15 +210,17 @@ const authService = {
     }
   },
 
+
   // Request OTP for email verification
   requestOtp: async (
     email: string,
+    password: string,
     type: 'login' | 'signup' = 'signup'
   ): Promise<ApiResponse<{ success: boolean }>> => {
     try {
       // Use the appropriate endpoint based on type
       const endpoint = type === 'login' ? '/api/accounts/login/' : '/api/accounts/register/';
-      const data = type === 'login' ? { email, password: 'dummy' } : { email };
+      const data = type === 'login' ? { email, password } : { email };
       
       const response = await api.post<{ detail: string }>(endpoint, data);
 

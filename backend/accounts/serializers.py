@@ -63,14 +63,24 @@ class LoginSerializer(serializers.Serializer):
         # Normalize email before authentication
         email = User.objects.normalize_email(email)
     
-        # Try to find user first to debug
+        # Enhanced debug logging
         try:
             existing_user = User.objects.get(email__iexact=email)
-            print(f"Found user with email: {existing_user.email}")
-        except User.DoesNotExist:
-            print(f"No user found with email: {email}")
+            print(f"Debug - Found user: email={existing_user.email}, is_active={existing_user.is_active}, email_verified={existing_user.email_verified}, role={existing_user.role}")
+            print(f"Debug - Request role: {role}")
             
-        user = authenticate(username=email, password=password)
+            # Try authentication with both email and normalized email
+            user = authenticate(username=email, password=password)
+            if not user:
+                user = authenticate(username=existing_user.email, password=password)
+                
+            print(f"Debug - Authentication result: {'Success' if user else 'Failed'}")
+            if user:
+                print(f"Debug - Authenticated user role: {user.role}")
+            
+        except User.DoesNotExist:
+            print(f"Debug - No user found with email: {email}")
+            user = None
         if not user:
             raise serializers.ValidationError("Invalid email or password")
         if not user.is_active:
@@ -103,9 +113,14 @@ class OTPVerifySerializer(serializers.Serializer):
         cache_key = f"otp_{otp_type}:{email}"
         attempts_key = f"otp_{otp_type}_attempts:{email}"
 
-        # Get the user to check if they are a superuser
+        # Get the user and check role
         try:
             user = User.objects.get(email=email)
+            
+            # Check if user has admin role when attempting admin login
+            if self.context.get('require_admin', False) and user.role != User.Role.ADMIN:
+                raise serializers.ValidationError("Access denied. Admin privileges required.")
+                
         except User.DoesNotExist:
             raise serializers.ValidationError("User not found.")
 
@@ -125,11 +140,13 @@ class OTPVerifySerializer(serializers.Serializer):
         cache.delete(cache_key)
         cache.delete(attempts_key)
 
-        # For superusers, mark email as verified if not already
-        if user.is_superuser and not user.email_verified:
+        # For admin users, mark email as verified if not already
+        if user.role == User.Role.ADMIN and not user.email_verified:
             user.email_verified = True
             user.save()
 
+        # Add user to validated data for token generation
+        data['user'] = user
         return data
 
 class UserSerializer(serializers.ModelSerializer):

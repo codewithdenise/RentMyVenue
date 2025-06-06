@@ -147,7 +147,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 
     try {
       // First, attempt to send OTP for login
-      const otpSent = await requestOtp(values.email, 'login');
+      const otpSent = await requestOtp(values.email, values.password, 'login');
 
       if (otpSent) {
         setShowOtpForm(true);
@@ -174,7 +174,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
       }
 
       // Send OTP for verification
-      const otpSent = await requestOtp(values.email, 'signup');
+      const otpSent = await requestOtp(values.email, values.password, 'signup');
 
       if (otpSent) {
         // Show OTP form if OTP was sent successfully
