@@ -1,9 +1,12 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
+
 import { Outlet, useOutletContext } from "react-router-dom";
-import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
-import { useTheme } from "@/contexts/ThemeContext";
+
 import { AuthModalType } from "@/components/auth/AuthModals";
+import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
+import { useTheme } from "@/contexts/ThemeContext";
+
 
 type MainLayoutContext = {
   openAuthModal: (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => void;

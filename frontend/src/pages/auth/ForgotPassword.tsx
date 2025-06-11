@@ -1,29 +1,34 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import * as React from "react";
+import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { ArrowLeft, Loader2, CheckCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { z } from "zod";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
+
 
 // Define form validation schema
 const formSchema = z.object({
@@ -64,7 +69,7 @@ const ForgotPassword: React.FC = () => {
           </Link>
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your
+            Enter your email address and we&apos;ll send you a link to reset your
             password
           </CardDescription>
         </CardHeader>
@@ -80,11 +85,11 @@ const ForgotPassword: React.FC = () => {
               <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
               <h3 className="text-lg font-medium mb-2">Check your email</h3>
               <p className="text-muted-foreground mb-4">
-                We've sent a password reset link to your email address. Please
+                We&apos;ve sent a password reset link to your email address. Please
                 check your inbox.
               </p>
               <p className="text-sm text-muted-foreground">
-                Didn't receive the email? Check your spam folder or{" "}
+                Didn&apos;t receive the email? Check your spam folder or{" "}
                 <Button
                   variant="link"
                   className="p-0 h-auto"

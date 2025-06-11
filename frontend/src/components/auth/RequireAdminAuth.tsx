@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+
 import { useNavigate, useLocation } from 'react-router-dom';
+
 import { useAuth } from '@/hooks/useAuth';
-import authService from '@/services/authService';
 
 interface RequireAdminAuthProps {
   children: React.ReactNode;
@@ -11,7 +12,6 @@ export const RequireAdminAuth: React.FC<RequireAdminAuthProps> = ({ children }) 
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -36,7 +36,7 @@ export const RequireAdminAuth: React.FC<RequireAdminAuthProps> = ({ children }) 
     checkAdminAccess();
   }, [isAuthenticated, isLoading, user, navigate, location]);
 
-  if (isLoading || isRefreshing) {
+  if (isLoading) {
     return null;
   }
 
@@ -46,5 +46,3 @@ export const RequireAdminAuth: React.FC<RequireAdminAuthProps> = ({ children }) 
 
   return null;
 };
-
-export default RequireAdminAuth;

@@ -1,9 +1,11 @@
-import React from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Venue } from "@/types";
+import * as React from "react";
+
 import { MapPin, Users, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Venue } from "@/types";
 
 interface RuralVenueCardProps {
   venue: Venue;

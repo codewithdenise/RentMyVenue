@@ -7,6 +7,7 @@
 
 import type { ApiResponse } from "../types";
 
+
 // Base API configuration
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const API_TIMEOUT = 10000; // 10 seconds
@@ -133,7 +134,7 @@ const request = async <T>(
         }
       }
 
-      let data: any;
+      let data: unknown;
       const contentType = response.headers.get("content-type");
       
       if (contentType && contentType.includes("application/json")) {
@@ -146,20 +147,21 @@ const request = async <T>(
         // Handle Django error responses
         let errorMessage = "An error occurred";
         
-        if (typeof data === "object") {
-          if (data.detail) {
-            errorMessage = data.detail;
-          } else if (data.error) {
-            errorMessage = data.error;
-          } else if (data.message) {
-            errorMessage = data.message;
-          } else if (data.non_field_errors) {
-            errorMessage = Array.isArray(data.non_field_errors) 
-              ? data.non_field_errors.join(", ")
-              : data.non_field_errors;
+        if (typeof data === "object" && data !== null) {
+          const errorData = data as Record<string, any>;
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.non_field_errors) {
+            errorMessage = Array.isArray(errorData.non_field_errors) 
+              ? errorData.non_field_errors.join(", ")
+              : errorData.non_field_errors;
           } else {
             // Handle field-specific errors
-            const fieldErrors = Object.entries(data)
+            const fieldErrors = Object.entries(errorData)
               .filter(([key, value]) => Array.isArray(value))
               .map(([key, value]) => `${key}: ${(value as string[]).join(", ")}`)
               .join("; ");
@@ -181,18 +183,18 @@ const request = async <T>(
       // Return successful response
       return {
         success: true,
-        data: data,
+        data: data as T,
       };
 
-    } catch (error: any) {
+    } catch (error) {
       clearTimeout(timeoutId);
       
-      if (error.name === "AbortError") {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new TimeoutError();
       }
       throw error;
     }
-  } catch (error: any) {
+  } catch (error) {
     if (
       error instanceof ApiError ||
       error instanceof TimeoutError ||
@@ -204,9 +206,16 @@ const request = async <T>(
       };
     }
 
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
-      error: error.message || "Network error occurred",
+      error: "An unknown error occurred",
     };
   }
 };
@@ -216,21 +225,21 @@ const api = {
   get: <T>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { ...options, method: "GET" }),
 
-  post: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+  post: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       ...options,
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+  put: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       ...options,
       method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  patch: <T>(endpoint: string, data?: any, options?: RequestInit) =>
+  patch: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       ...options,
       method: "PATCH",

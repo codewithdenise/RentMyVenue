@@ -1,21 +1,26 @@
-import React, { useState, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
-import { useVenues } from "@/hooks/useVenues";
-import { Venue } from "@/types";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import * as React from "react";
+import { useState, useCallback } from "react";
+
+import debounce from "lodash.debounce";
 import {
+  X,
   Loader2,
   Search,
-  Users,
-  MapPin,
-  Calendar,
   Star,
-  X,
+  MapPin,
+  Users,
+  Calendar,
 } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import debounce from "lodash.debounce";
+import { useVenues } from "@/hooks/useVenues";
+import { Venue } from "@/types";
+
+
 
 // Placeholder venue cards for loading state
 const VenueCardSkeleton = () => (

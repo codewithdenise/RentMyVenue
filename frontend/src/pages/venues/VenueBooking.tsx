@@ -1,42 +1,44 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+
+import { format } from "date-fns";
+import {
+  MapPin,
+  CalendarIcon,
+  Clock,
+  Users,
+  Info,
+  CreditCard,
+  Loader2,
+} from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
-import {
-  CalendarIcon,
-  Check,
-  Clock,
-  CreditCard,
-  Info,
-  MapPin,
-  Plus,
-  Loader2,
-  Users,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import venueService from "@/services/venueService";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import bookingService from "@/services/bookingService";
+import venueService from "@/services/venueService";
+import { Venue } from "@/types";
+
 
 const VenueBooking = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,7 +46,7 @@ const VenueBooking = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
 
-  const [venue, setVenue] = useState<any>(null);
+  const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,14 +85,21 @@ const VenueBooking = () => {
         // In a real application, you would fetch the venue details from the API
         // For now, we'll simulate a response
         const response = await venueService.getVenueById(id);
-        setVenue(response);
-
-        // Initialize total price with venue base price
-        if (response.pricePerDay) {
-          setTotalPrice(response.pricePerDay);
+        if (response.success && response.data) {
+          setVenue(response.data);
+          // Initialize total price with venue base price
+          if (response.data.pricePerDay) {
+            setTotalPrice(response.data.pricePerDay);
+          }
+        } else {
+          throw new Error(response.error || "Failed to fetch venue details");
         }
-      } catch (error: any) {
-        setError(error.message || "Failed to load venue details");
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
         toast({
           title: "Error",
           description: "Failed to load venue details. Please try again.",
@@ -167,22 +176,37 @@ const VenueBooking = () => {
       };
 
       // Call booking service to create a booking
-      const response = await bookingService.createBooking(bookingData);
+      const response = await bookingService.createBooking(bookingData as any);
 
-      toast({
-        title: "Booking Created",
-        description: "Your booking has been created successfully!",
-      });
+      if (response.success) {
+        toast({
+          title: "Booking Created",
+          description: "Your booking has been created successfully!",
+        });
 
-      // Navigate to booking confirmation page
-      navigate(`/booking/confirmation/${response.bookingId}`);
-    } catch (error: any) {
-      toast({
-        title: "Booking Failed",
-        description:
-          error.message || "Failed to create booking. Please try again.",
-        variant: "destructive",
-      });
+        // Navigate to booking confirmation page
+        navigate(`/booking/confirmation/${response.data.bookingId}`);
+      } else {
+        toast({
+          title: "Booking Failed",
+          description: response.error || "Could not create booking.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: "Booking Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Booking Failed",
+          description: "An unknown error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setBookingLoading(false);
     }

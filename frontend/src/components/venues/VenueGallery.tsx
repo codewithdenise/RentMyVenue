@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
+
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -45,30 +48,35 @@ const VenueGallery: React.FC<VenueGalleryProps> = ({ images, venueName }) => {
       {/* Main Gallery */}
       <div className="space-y-2">
         {/* Main Image */}
-        <div
-          className="relative h-72 md:h-96 rounded-lg overflow-hidden cursor-pointer"
-          onClick={() => setIsFullScreen(true)}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-        >
-          <img
-            src={images[currentIndex]?.url}
-            alt={
-              images[currentIndex]?.alt ||
-              `${venueName} - Image ${currentIndex + 1}`
-            }
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src =
-                "https://source.unsplash.com/random/800x600/?wedding,venue";
+        <div className="relative">
+          <button
+            type="button"
+            className="relative block w-full h-72 md:h-96 rounded-lg overflow-hidden cursor-pointer"
+            onClick={() => setIsFullScreen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setIsFullScreen(true);
+              }
             }}
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-            <p className="text-white text-sm">
-              Image {currentIndex + 1} of {images.length}
-            </p>
-          </div>
+            aria-label={`View ${venueName} gallery in fullscreen`}
+          >
+            <img
+              src={images[currentIndex]?.url}
+              alt={images[currentIndex]?.alt || `${venueName} - Image ${currentIndex + 1}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                if (e.target instanceof HTMLImageElement) {
+                  e.target.src = "https://source.unsplash.com/random/800x600/?wedding,venue";
+                }
+              }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+              <p className="text-white text-sm">
+                Image {currentIndex + 1} of {images.length}
+              </p>
+            </div>
+          </button>
+
           <Button
             variant="outline"
             size="icon"
@@ -96,37 +104,44 @@ const VenueGallery: React.FC<VenueGalleryProps> = ({ images, venueName }) => {
         {/* Thumbnails */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           {images.map((image, index) => (
-            <div
+            <button
               key={index}
+              type="button"
               className={`relative h-16 w-20 flex-shrink-0 rounded-md overflow-hidden cursor-pointer ${
                 index === currentIndex
                   ? "ring-2 ring-primary border border-white"
                   : "opacity-70"
               }`}
               onClick={() => handleThumbnailClick(index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleThumbnailClick(index);
+                }
+              }}
+              aria-label={`View image ${index + 1} of ${images.length}: ${image.alt || `${venueName} - Image ${index + 1}`}`}
             >
               <img
                 src={image.url}
                 alt={image.alt || `${venueName} - Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src =
-                    "https://source.unsplash.com/random/100x100/?wedding,venue";
+                  if (e.target instanceof HTMLImageElement) {
+                    e.target.src = "https://source.unsplash.com/random/100x100/?wedding,venue";
+                  }
                 }}
               />
-            </div>
+            </button>
           ))}
         </div>
       </div>
 
       {/* Fullscreen Gallery */}
       <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
-        <DialogContent className="max-w-6xl p-0 bg-black">
+        <DialogContent className="max-w-6xl p-0 bg-black" onKeyDown={handleKeyDown}>
           <div
             className="flex flex-col h-screen max-h-[80vh]"
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
+            role="dialog"
+            aria-label={`${venueName} gallery fullscreen view`}
           >
             <div className="flex justify-end p-2">
               <Button
@@ -139,19 +154,18 @@ const VenueGallery: React.FC<VenueGalleryProps> = ({ images, venueName }) => {
               </Button>
             </div>
             <div className="flex-1 relative flex items-center justify-center p-4">
-              <img
-                src={images[currentIndex]?.url}
-                alt={
-                  images[currentIndex]?.alt ||
-                  `${venueName} - Image ${currentIndex + 1}`
-                }
-                className="max-h-full max-w-full object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src =
-                    "https://source.unsplash.com/random/800x600/?wedding,venue";
-                }}
-              />
+              <div className="max-h-full max-w-full">
+                <img
+                  src={images[currentIndex]?.url}
+                  alt={images[currentIndex]?.alt || `${venueName} - Image ${currentIndex + 1}`}
+                  className="max-h-full max-w-full object-contain"
+                  onError={(e) => {
+                    if (e.target instanceof HTMLImageElement) {
+                      e.target.src = "https://source.unsplash.com/random/800x600/?wedding,venue";
+                    }
+                  }}
+                />
+              </div>
               <Button
                 variant="outline"
                 size="icon"
@@ -171,8 +185,7 @@ const VenueGallery: React.FC<VenueGalleryProps> = ({ images, venueName }) => {
             </div>
             <div className="p-4 text-white bg-black/90">
               <p>
-                {images[currentIndex]?.alt ||
-                  `${venueName} - Image ${currentIndex + 1}`}
+                {images[currentIndex]?.alt || `${venueName} - Image ${currentIndex + 1}`}
               </p>
               <p className="text-sm text-white/70">
                 Image {currentIndex + 1} of {images.length}

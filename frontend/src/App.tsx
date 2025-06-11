@@ -1,38 +1,35 @@
-     import React, { useState } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import * as React from "react";
+import { useState } from "react";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Auth is now handled via modals
 import AuthModals, { AuthModalType } from "@/components/auth/AuthModals";
-
-// Layouts
-import MainLayout from "@/layouts/MainLayout";
+import { RequireAdminAuth } from "@/components/auth/RequireAdminAuth";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
-
+import MainLayout from "@/layouts/MainLayout";
 // Main Pages
+import AdminLogin from "@/pages/admin/AdminLogin";
+import BecomeHost from "@/pages/BecomeHost";
+import HowItWorks from "@/pages/HowItWorks";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
-import HowItWorks from "@/pages/HowItWorks";
-import VenueSearch from "@/pages/venues/VenueSearch";
-import VenueDetails from "@/pages/venues/VenueDetails";
-import VenueBooking from "@/pages/venues/VenueBooking";
+import SharedDashboard from "@/pages/shared/SharedDashboard";
+import UserBookings from "@/pages/user/UserBookings";
+import UserDashboard from "@/pages/user/UserDashboard";
 import BookingConfirmation from "@/pages/venues/BookingConfirmation";
+import VenueBooking from "@/pages/venues/VenueBooking";
+import VenueDetails from "@/pages/venues/VenueDetails";
+import VenueSearch from "@/pages/venues/VenueSearch";
+
 
 // Dashboard Pages
-import UserDashboard from "@/pages/user/UserDashboard";
-import UserBookings from "@/pages/user/UserBookings";
-import VendorDashboard from "@/pages/vendor/VendorDashboard";
-import SharedDashboard from "@/pages/shared/SharedDashboard";
-import AdminLogin from "@/pages/admin/AdminLogin";
-import { RequireAuthRole } from "@/components/auth/RequireAuthRole";
-
-import BecomeHost from "@/pages/BecomeHost";
 
 type AuthModalState = {
   type: AuthModalType;
@@ -192,9 +189,9 @@ const App = () => {
                   <Route
                     path="/admin"
                     element={
-                      <RequireAuthRole allowedRoles={['admin', 'vendor']}>
+                      <RequireAdminAuth>
                         <DashboardLayout />
-                      </RequireAuthRole>
+                      </RequireAdminAuth>
                     }
                   >
                     <Route path="dashboard" element={<SharedDashboard />} />

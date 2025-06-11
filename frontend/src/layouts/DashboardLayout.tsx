@@ -1,23 +1,26 @@
-import React, { useState } from "react";
-import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { useState } from "react";
+
 import {
-  User,
   Home,
   CalendarDays,
+  User as UserIcon,
+  Building2,
+  Banknote,
+  Search,
+  FileText,
   Settings,
   LogOut,
-  Building2,
-  FileText,
-  Search,
-  Banknote,
   Menu,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -51,7 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       title: "Profile",
-      icon: <User className="h-5 w-5" />,
+      icon: <UserIcon className="h-5 w-5" />,
       href: `/${user?.role}/profile`,
     },
     {
@@ -74,7 +77,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       title: "User Management",
-      icon: <User className="h-5 w-5" />,
+      icon: <UserIcon className="h-5 w-5" />,
       href: `/admin/users`,
       userRoles: ["admin"],
     },

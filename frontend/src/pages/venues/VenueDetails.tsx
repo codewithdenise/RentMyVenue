@@ -1,30 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Calendar } from "@/components/ui/calendar";
+import * as React from "react";
+import { useState, useEffect } from "react";
+
+import { isBefore, isSameDay, parseISO } from "date-fns";
 import {
   MapPin,
-  Users,
+  Heart,
+  Share2,
   Star,
+  Users,
   Clock,
-  Wifi,
   Car,
   Music,
   Utensils,
-  Share2,
-  Heart,
+  Wifi,
   Loader2,
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import venueService from "@/services/venueService";
+import { useParams, useNavigate } from "react-router-dom";
 
-// @ts-ignore
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import venueService from "@/services/venueService";
 import type { Venue } from "@/types";
-import { isBefore, isSameDay, parseISO } from "date-fns";
+
 
 interface VenueDetailsProps {
   openAuthModal: (type: "signup" | "none" | "login" | "forgotPassword", signupRole?: "user" | "vendor") => void;
@@ -95,8 +97,12 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Eleme
           }
         }
 
-      } catch (error: any) {
-        setError(error.message || "Failed to load venue details");
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
         toast({
           title: "Error",
           description: "Failed to load venue details. Please try again.",
@@ -182,7 +188,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Eleme
                 {error === "This venue is currently not available."
                   ? `This venue is currently not available for booking. It may be under review or temporarily unlisted.`
                   : error === "Venue not found."
-                  ? "The venue you're looking for could not be found. It may have been removed or the link might be incorrect."
+                  ? "The venue you&apos;re looking for could not be found. It may have been removed or the link might be incorrect."
                   : error || "An error occurred while loading the venue."}
               </p>
               <Button onClick={() => navigate("/venues")}>Back to Venues</Button>
@@ -250,21 +256,32 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Eleme
           />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-          {venue.images.slice(0, 3).map((image: any, index: number) => (
-            <img
+          {venue.images.slice(0, 3).map((image, index: number) => (
+            <button
               key={index}
-              src={image.url}
-              alt={image.alt || `${venue.name} image ${index + 1}`}
-              className={`w-full h-[120px] object-cover rounded-lg cursor-pointer transition-opacity ${
+              type="button"
+              className={`w-full h-[120px] rounded-lg cursor-pointer transition-opacity ${
                 selectedImage === image.url
                   ? "ring-2 ring-primary"
                   : "hover:opacity-90"
               }`}
               onClick={() => setSelectedImage(image.url)}
-            />
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  setSelectedImage(image.url);
+                }
+              }}
+            >
+              <img
+                src={image.url}
+                alt={image.alt || `${venue.name} image ${index + 1}`}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </button>
           ))}
           {venue.images.length > 3 && (
-            <div
+            <button
+              type="button"
               className="w-full h-[120px] bg-muted/50 rounded-lg flex items-center justify-center cursor-pointer"
               onClick={() =>
                 toast({
@@ -272,11 +289,19 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Eleme
                   description: "Full gallery view is coming soon!",
                 })
               }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  toast({
+                    title: "Gallery View",
+                    description: "Full gallery view is coming soon!",
+                  });
+                }
+              }}
             >
               <span className="text-sm font-medium">
                 +{venue.images.length - 3} more
               </span>
-            </div>
+            </button>
           )}
         </div>
       </div>
@@ -410,7 +435,7 @@ const VenueDetails: React.FC<VenueDetailsProps> = ({ openAuthModal }): JSX.Eleme
               </Button>
 
               <p className="text-center text-sm text-muted-foreground mb-4">
-                You won't be charged yet
+                You won&apos;t be charged yet
               </p>
 
               <div className="space-y-3 text-sm">

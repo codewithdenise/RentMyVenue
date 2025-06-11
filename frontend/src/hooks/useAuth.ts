@@ -1,17 +1,15 @@
 import { useState, useCallback, useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
-import { User, UserRole } from "@/types";
+
 import authService from "@/services/authService";
+import { User, UserRole } from "@/types";
+
 
 interface UseAuthOptions {
   redirectIfAuthenticated?: string;
   redirectIfUnauthenticated?: string;
   requireRole?: UserRole | UserRole[];
-}
-
-interface LoginResponse {
-  user: User;
-  token: string;
 }
 
 interface UseAuthReturn {
@@ -131,7 +129,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         setIsLoading(false);
       }
     },
-    [navigate],
+    [],
   );
 
   const verifyOtp = useCallback(

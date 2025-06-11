@@ -1,37 +1,35 @@
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types";
+
 
 // Sign In Form Schema
 const signInFormSchema = z.object({
@@ -386,7 +384,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                       onOpenChange("signup");
                     }}
                   >
-                    Don't have an account? Sign Up
+                    Don&apos;t have an account? Sign Up
                   </Button>
                   <Button type="submit" disabled={isLoading}>
                     {isLoading && (

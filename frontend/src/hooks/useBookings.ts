@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { Booking, ApiResponse } from "@/types";
+
 import bookingService from "@/services/bookingService";
+import { Booking, ApiResponse } from "@/types";
+
 import { useAuth } from "./useAuth";
 
 // Hook for user's bookings
@@ -28,11 +30,10 @@ export function useUserBookings(): UseUserBookingsReturn {
       setIsLoading(true);
       setError(null);
 
-      const response: ApiResponse<Booking[]> =
-        await bookingService.getUserBookings(user.id);
+      const response = await bookingService.getUserBookings();
 
       if (response.success && response.data) {
-        setBookings(response.data);
+        setBookings(response.data.bookings);
       } else {
         setError(response.error || "Failed to fetch bookings");
       }
@@ -105,7 +106,7 @@ interface UseVenueBookingsReturn {
   fetchVenueBookings: () => Promise<void>;
   updateBookingStatus: (
     bookingId: string,
-    status: Booking["status"],
+    status: "confirmed" | "cancelled",
   ) => Promise<boolean>;
 }
 
@@ -127,11 +128,10 @@ export function useVenueBookings({
       setIsLoading(true);
       setError(null);
 
-      const response: ApiResponse<Booking[]> =
-        await bookingService.getVenueBookings(venueId);
+      const response = await bookingService.getUserBookings();
 
       if (response.success && response.data) {
-        setBookings(response.data);
+        setBookings(response.data.bookings);
       } else {
         setError(response.error || "Failed to fetch venue bookings");
       }
@@ -143,7 +143,7 @@ export function useVenueBookings({
   }, [venueId]);
 
   const updateBookingStatus = useCallback(
-    async (bookingId: string, status: Booking["status"]): Promise<boolean> => {
+    async (bookingId: string, status: "confirmed" | "cancelled"): Promise<boolean> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -222,7 +222,7 @@ interface UseBookingReturn {
   error: string | null;
   fetchBooking: () => Promise<void>;
   cancelBooking: () => Promise<boolean>;
-  updateStatus: (status: Booking["status"]) => Promise<boolean>;
+  updateStatus: (status: "confirmed" | "cancelled") => Promise<boolean>;
 }
 
 export function useBooking({
@@ -243,8 +243,7 @@ export function useBooking({
       setIsLoading(true);
       setError(null);
 
-      const response: ApiResponse<Booking> =
-        await bookingService.getBooking(bookingId);
+      const response = await bookingService.getBookingById(bookingId);
 
       if (response.success && response.data) {
         setBooking(response.data);
@@ -287,7 +286,7 @@ export function useBooking({
   }, [bookingId]);
 
   const updateStatus = useCallback(
-    async (status: Booking["status"]): Promise<boolean> => {
+    async (status: "confirmed" | "cancelled"): Promise<boolean> => {
       if (!bookingId) {
         setError("Booking ID is required");
         return false;

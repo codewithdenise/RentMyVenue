@@ -1,7 +1,11 @@
-import React from "react";
+import * as React from "react";
+
 import { Search, Calendar, Users, MapPin, Shield, Clock, CreditCard, HeartHandshake } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+
+
 
 const HowItWorks = () => {
   return (

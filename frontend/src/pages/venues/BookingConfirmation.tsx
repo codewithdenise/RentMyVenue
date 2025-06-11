@@ -1,34 +1,38 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import * as React from "react";
+import { useState, useEffect } from "react";
+
 import { format } from "date-fns";
 import {
   Check,
+  CreditCard,
   Copy,
   Download,
-  Loader2,
-  CreditCard,
-  Calendar,
   MapPin,
+  Calendar,
   Users,
+  Loader2,
 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import bookingService from "@/services/bookingService";
+import { ApiResponse, Booking } from "@/types";
 
 const BookingConfirmation = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -43,10 +47,11 @@ const BookingConfirmation = () => {
 
         // In a real application, you would fetch the booking details from the API
         // For now, we'll simulate a response
-        const response = await bookingService.getBookingById(id);
-        setBooking(response);
-      } catch (error: any) {
-        setError(error.message || "Failed to load booking details");
+        const response: ApiResponse<Booking> = await bookingService.getBookingById(id);
+        setBooking(response.data);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to load booking details";
+        setError(errorMessage);
         toast({
           title: "Error",
           description: "Failed to load booking details. Please try again.",
@@ -153,8 +158,7 @@ const BookingConfirmation = () => {
             </CardTitle>
             {booking.status === "confirmed" ? (
               <p className="text-muted-foreground mt-2">
-                Your booking is confirmed. You'll receive a confirmation email
-                shortly.
+                Your booking is confirmed. We&apos;re looking forward to hosting your event!
               </p>
             ) : (
               <p className="text-muted-foreground mt-2">
@@ -319,7 +323,7 @@ const BookingConfirmation = () => {
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 {booking.status === "confirmed"
-                  ? "Your booking is confirmed. We're looking forward to hosting your event!"
+                  ? "Your booking is confirmed. We&apos;re looking forward to hosting your event!"
                   : booking.status === "pending"
                     ? "Your booking is pending payment. Please complete the payment to confirm your booking."
                     : "Your booking has been cancelled."}

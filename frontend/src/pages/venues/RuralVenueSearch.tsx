@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, FC } from "react";
+
+import { Loader2, Search, MapPin } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { useVenues } from "@/hooks/useVenues";
-import VenueCapacityFilter from "@/components/venues/VenueCapacityFilter";
-import RuralVenueCard from "@/components/venues/RuralVenueCard";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, MapPin } from "lucide-react";
+import RuralVenueCard from "@/components/venues/RuralVenueCard";
+import VenueCapacityFilter from "@/components/venues/VenueCapacityFilter";
+import { useVenues } from "@/hooks/useVenues";
+import type { Venue } from "@/types";
 
-const RuralVenueSearch: React.FC = () => {
+const RuralVenueSearch: FC = function RuralVenueSearch() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCapacity = parseInt(searchParams.get("capacity") || "0");
   const initialLocation = searchParams.get("location") || "";
@@ -19,27 +22,21 @@ const RuralVenueSearch: React.FC = () => {
   // Get venues with initial parameters
   const {
     venues,
-    isLoading,
+    loading,
     error,
-    totalVenues,
-    totalPages,
-    currentPage,
-    fetchNextPage,
-    fetchPreviousPage,
+    meta,
+    filters,
     setFilters,
     fetchVenues,
   } = useVenues({
-    initialFilters: {
-      limit: 9,
-      minCapacity: initialCapacity > 0 ? initialCapacity : undefined,
-      location: initialLocation || undefined,
-    },
-    autoFetch: true,
+    limit: 9,
+    minCapacity: initialCapacity > 0 ? initialCapacity : undefined,
+    location: initialLocation || undefined,
   });
 
   // Handle capacity change
-  const handleCapacityChange = (newCapacity: number) => {
-    setCapacity(newCapacity);
+  const handleCapacityChange = (capacity: string) => {
+    setCapacity(parseInt(capacity));
   };
 
   // Handle search
@@ -60,11 +57,11 @@ const RuralVenueSearch: React.FC = () => {
   // Re-fetch when search parameters change
   useEffect(() => {
     if (isSearching) {
-      fetchVenues().then(() => {
+      fetchVenues(filters).then(() => {
         setIsSearching(false);
       });
     }
-  }, [isSearching, fetchVenues]);
+  }, [isSearching, fetchVenues, filters]);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -99,9 +96,9 @@ const RuralVenueSearch: React.FC = () => {
               <Button
                 className="gap-2"
                 onClick={handleSearch}
-                disabled={isLoading || isSearching}
+                disabled={loading || isSearching}
               >
-                {isLoading || isSearching ? (
+                {loading || isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Search className="h-4 w-4" />
@@ -119,15 +116,15 @@ const RuralVenueSearch: React.FC = () => {
           <div className="sticky top-20 space-y-6">
             <VenueCapacityFilter
               onChange={handleCapacityChange}
-              defaultValue={capacity}
+              selectedCapacity={capacity.toString()}
             />
 
             <Button
               className="w-full"
               onClick={handleSearch}
-              disabled={isLoading || isSearching}
+              disabled={loading || isSearching}
             >
-              {isLoading || isSearching ? (
+              {loading || isSearching ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Search className="mr-2 h-4 w-4" />
@@ -145,9 +142,9 @@ const RuralVenueSearch: React.FC = () => {
               Rural Wedding Venues
             </h2>
             <p className="text-muted-foreground">
-              {isLoading
+              {loading
                 ? "Finding available venues..."
-                : `Showing ${venues.length} of ${totalVenues} venues`}
+                : `Showing ${venues.length} of ${meta.total} venues`}
               {capacity > 0 ? ` for ${capacity}+ guests` : ""}
               {location ? ` in ${location}` : ""}
             </p>
@@ -160,7 +157,7 @@ const RuralVenueSearch: React.FC = () => {
                 Error loading venues. Please try again.
               </p>
             </div>
-          ) : isLoading && venues.length === 0 ? (
+          ) : loading && venues.length === 0 ? (
             <div className="text-center py-12 bg-muted rounded-lg">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
               <p className="text-muted-foreground">Loading venues...</p>
@@ -187,29 +184,29 @@ const RuralVenueSearch: React.FC = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {venues.map((venue) => (
+                {venues.map((venue: Venue) => (
                   <RuralVenueCard key={venue.id} venue={venue} />
                 ))}
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {meta.totalPages > 1 && (
                 <div className="flex justify-center mt-8 gap-2">
                   <Button
                     variant="outline"
-                    onClick={fetchPreviousPage}
-                    disabled={currentPage <= 1 || isLoading}
+                    onClick={() => setFilters({ ...filters, page: Math.max(meta.page - 1, 1) })}
+                    disabled={meta.page <= 1 || loading}
                     className="border-primary/20 hover:bg-primary/5"
                   >
                     Previous
                   </Button>
                   <span className="flex items-center px-4 bg-muted rounded-md">
-                    Page {currentPage} of {totalPages}
+                    Page {meta.page} of {meta.totalPages}
                   </span>
                   <Button
                     variant="outline"
-                    onClick={fetchNextPage}
-                    disabled={currentPage >= totalPages || isLoading}
+                    onClick={() => setFilters({ ...filters, page: Math.min(meta.page + 1, meta.totalPages) })}
+                    disabled={meta.page >= meta.totalPages || loading}
                     className="border-primary/20 hover:bg-primary/5"
                   >
                     Next

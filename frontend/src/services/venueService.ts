@@ -5,7 +5,8 @@
  */
 
 import api from "./api";
-import type { VenueSearchFilters, ApiResponse, Venue, Tehsil } from "../types";
+import type { VenueSearchFilters, ApiResponse, Venue, Tehsil, Review } from "../types";
+
 
 
 // Backend response interfaces matching actual Django API
@@ -264,10 +265,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch venues",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch venues";
       return {
         success: false,
-        error: error.message || "Failed to fetch venues",
+        error: message,
       };
     }
   },
@@ -290,10 +292,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch featured venues",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch featured venues";
       return {
         success: false,
-        error: error.message || "Failed to fetch featured venues",
+        error: message,
       };
     }
   },
@@ -315,10 +318,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch venue details",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch venue details";
       return {
         success: false,
-        error: error.message || "Failed to fetch venue details",
+        error: message,
       };
     }
   },
@@ -353,10 +357,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to check venue availability",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to check venue availability";
       return {
         success: false,
-        error: error.message || "Failed to check venue availability",
+        error: message,
       };
     }
   },
@@ -366,7 +371,7 @@ const venueService = {
     venueId: string,
     page = 1,
     pageSize = 10,
-  ): Promise<ApiResponse<{ reviews: any[]; total: number; hasMore: boolean }>> => {
+  ): Promise<ApiResponse<{ reviews: Review[]; total: number; hasMore: boolean }>> => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -377,7 +382,7 @@ const venueService = {
         count: number;
         next: string | null;
         previous: string | null;
-        results: any[];
+        results: Review[];
       }>(`/api/venues/${venueId}/reviews/?${params.toString()}`);
 
       if (response.success && response.data) {
@@ -395,10 +400,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch venue reviews",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch venue reviews";
       return {
         success: false,
-        error: error.message || "Failed to fetch venue reviews",
+        error: message,
       };
     }
   },
@@ -419,10 +425,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch venue categories",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch venue categories";
       return {
         success: false,
-        error: error.message || "Failed to fetch venue categories",
+        error: message,
       };
     }
   },
@@ -443,10 +450,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch venue amenities",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch venue amenities";
       return {
         success: false,
-        error: error.message || "Failed to fetch venue amenities",
+        error: message,
       };
     }
   },
@@ -467,10 +475,11 @@ const venueService = {
         success: false,
         error: response.error || "Failed to fetch tehsils",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch tehsils";
       return {
         success: false,
-        error: error.message || "Failed to fetch tehsils",
+        error: message,
       };
     }
   },

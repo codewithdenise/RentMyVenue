@@ -1,39 +1,43 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import * as React from "react";
+import { useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { z } from "zod";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import authService from "@/services/authService";
-
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserRole } from "@/types";
+
+
 
 // Define form validation schema
 const formSchema = z
@@ -184,7 +188,7 @@ const SignUp: React.FC = () => {
               <div className="space-y-4">
                 <div className="text-center mb-4">
                   <p className="text-sm text-muted-foreground">
-                    We've sent a verification code to {registrationData?.email}
+                    We&apos;ve sent a verification code to {registrationData?.email}
                   </p>
                 </div>
                 <div className="grid gap-2">

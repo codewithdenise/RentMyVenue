@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+
 import venueService from "../services/venueService";
 import type { VenueSearchFilters, Venue } from "../types";
+
 
 export function useVenues(initialFilters: VenueSearchFilters = {}) {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -31,8 +33,12 @@ export function useVenues(initialFilters: VenueSearchFilters = {}) {
         setError(response.error || "Failed to fetch venues");
         setVenues([]);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch venues");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
       setVenues([]);
     } finally {
       setLoading(false);

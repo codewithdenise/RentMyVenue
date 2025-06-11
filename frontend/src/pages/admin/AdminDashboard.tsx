@@ -1,24 +1,26 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import * as React from "react";
+
 import {
   Users,
   MapPin,
   Calendar,
   DollarSign,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
   Clock,
-  XCircle,
-  Eye,
-  UserCheck,
   Building,
-  Star,
+  AlertTriangle,
   Activity,
+  CheckCircle,
+  XCircle,
+  UserCheck,
+  TrendingUp,
+  Eye,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 const AdminDashboard: React.FC = () => {
   // Mock data for demonstration

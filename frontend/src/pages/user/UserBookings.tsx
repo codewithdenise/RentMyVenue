@@ -1,31 +1,35 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import * as React from "react";
+import { useState } from "react";
+
+import {
+  Download,
+  Search,
+  Filter,
+  MapPin,
+  Calendar,
+  Users,
+  CreditCard,
+  Clock,
+  Phone,
+  Mail,
+  Eye,
+  MessageCircle,
+  Star,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Clock,
-  Star,
-  CreditCard,
-  Search,
-  Filter,
-  Download,
-  Eye,
-  MessageCircle,
-  Phone,
-  Mail,
-} from "lucide-react";
-import { Link } from "react-router-dom";
+
 
 const UserBookings: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");

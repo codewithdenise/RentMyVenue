@@ -5,7 +5,9 @@
  */
 
 import { User, UserRole, ApiResponse } from "@/types";
+
 import api from "./api";
+
 
 // Interface definitions
 interface LoginCredentials {
@@ -97,10 +99,11 @@ const authService = {
         success: false,
         error: response.error || "Registration failed",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Registration failed";
       return {
         success: false,
-        error: error.message || "Registration failed",
+        error: message,
       };
     }
   },
@@ -141,10 +144,11 @@ const authService = {
         success: false,
         error: response.error || "Login failed",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Login failed";
       return {
         success: false,
-        error: error.message || "Login failed",
+        error: message,
       };
     }
   },
@@ -202,10 +206,11 @@ const authService = {
         success: false,
         error: response.error || "OTP verification failed",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "OTP verification failed";
       return {
         success: false,
-        error: error.message || "OTP verification failed",
+        error: message,
       };
     }
   },
@@ -235,10 +240,11 @@ const authService = {
         success: false,
         error: response.error || "Failed to send verification code",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to send verification code";
       return {
         success: false,
-        error: error.message || "Failed to send verification code",
+        error: message,
       };
     }
   },
@@ -265,10 +271,11 @@ const authService = {
         success: false,
         error: response.error || "Failed to process request",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to process request";
       return {
         success: false,
-        error: error.message || "Failed to process request",
+        error: message,
       };
     }
   },
@@ -298,10 +305,11 @@ const authService = {
         success: false,
         error: response.error || "Failed to reset password",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to reset password";
       return {
         success: false,
-        error: error.message || "Failed to reset password",
+        error: message,
       };
     }
   },
@@ -339,15 +347,16 @@ const authService = {
         success: false,
         error: response.error || "Failed to get user profile",
       };
-    } catch (error: any) {
+    } catch (error) {
       // If token is invalid, clear storage
       localStorage.removeItem("rentmyvenue_user");
       localStorage.removeItem("rentmyvenue_token");
       localStorage.removeItem("rentmyvenue_refresh_token");
       
+      const message = error instanceof Error ? error.message : "Failed to get user profile";
       return {
         success: false,
-        error: error.message || "Failed to get user profile",
+        error: message,
       };
     }
   },
@@ -379,15 +388,16 @@ const authService = {
         success: false,
         error: response.error || "Failed to refresh token",
       };
-    } catch (error: any) {
+    } catch (error) {
       // Clear all tokens if refresh fails
       localStorage.removeItem("rentmyvenue_user");
       localStorage.removeItem("rentmyvenue_token");
       localStorage.removeItem("rentmyvenue_refresh_token");
       
+      const message = error instanceof Error ? error.message : "Failed to refresh token";
       return {
         success: false,
-        error: error.message || "Failed to refresh token",
+        error: message,
       };
     }
   },
@@ -413,7 +423,7 @@ const authService = {
         success: true,
         data: { success: true },
       };
-    } catch (error: any) {
+    } catch (error) {
       // Even if API call fails, clear local storage
       localStorage.removeItem("rentmyvenue_user");
       localStorage.removeItem("rentmyvenue_token");

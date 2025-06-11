@@ -1,11 +1,13 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import * as React from "react";
+
 import { motion } from "framer-motion";
+import { CheckCircle2 } from "lucide-react";
+
+import { AuthModalType } from "@/components/auth/AuthModals";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { AuthModalType } from "@/components/auth/AuthModals";
+
 
 interface BecomeHostProps {
   openAuthModal: (type: AuthModalType, signupRole?: "user" | "vendor") => void;
@@ -190,7 +192,7 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold">What Our Hosts Say</h2>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-              Hear from venue owners who've found success on our platform
+              Hear from venue owners who&apos;ve found success on our platform
             </p>
           </div>
 
@@ -201,7 +203,7 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
                 venue: "Lakeside Manor",
                 image:
                   "https://source.unsplash.com/random/100x100/?woman,portrait&sig=1",
-                text: "Since listing my venue on RentMyVenue, I've had consistent bookings throughout the year. The platform handles all the details, making it easy for me to manage my property.",
+                text: "Since listing my venue on RentMyVenue, I&apos;ve had consistent bookings throughout the year. The platform handles all the details, making it easy for me to manage my property.",
               },
               {
                 name: "Michael Chen",
@@ -215,7 +217,6 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
                 venue: "Sunset Vineyard",
                 image:
                   "https://source.unsplash.com/random/100x100/?woman,portrait&sig=3",
-                text: "What I love most is the flexibility. I can block off dates for my own events while still earning significant income during the wedding season.",
               },
             ].map((testimonial, i) => (
               <Card key={i} className="p-6">
@@ -232,7 +233,7 @@ const BecomeHost: React.FC<BecomeHostProps> = ({ openAuthModal }) => {
                     </div>
                   </div>
                 </div>
-                <p className="text-muted-foreground">"{testimonial.text}"</p>
+<p className="text-muted-foreground">&quot;{testimonial.text}&quot;</p>
               </Card>
             ))}
           </div>

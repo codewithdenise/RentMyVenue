@@ -1,8 +1,11 @@
-import React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+
 import { Facebook, Instagram, Twitter, Mail, PhoneCall, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+
 
 interface FooterProps {
   className?: string;
@@ -26,15 +29,27 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
               it all.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-muted-foreground hover:text-primary">
+              <button 
+                type="button" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Visit our Facebook page"
+              >
                 <Facebook size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary">
+              </button>
+              <button 
+                type="button" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Visit our Instagram page"
+              >
                 <Instagram size={20} />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary">
+              </button>
+              <button 
+                type="button" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Visit our Twitter page"
+              >
                 <Twitter size={20} />
-              </a>
+              </button>
             </div>
           </div>
 

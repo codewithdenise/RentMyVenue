@@ -7,6 +7,7 @@
 import api from "./api";
 import type { ApiResponse, Booking } from "../types";
 
+
 // Backend response interfaces
 interface BookingRequest {
   venue_id: string;
@@ -77,6 +78,8 @@ const transformBooking = (backendBooking: BookingResponse): Booking => {
     totalPrice: backendBooking.total_price,
     paymentStatus: backendBooking.payment_status,
     createdAt: backendBooking.created_at,
+    guestCount: backendBooking.guest_count,
+    paymentMethod: 'online'
   };
 };
 
@@ -117,10 +120,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to create booking",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to create booking";
       return {
         success: false,
-        error: error.message || "Failed to create booking",
+        error: errorMessage,
       };
     }
   },
@@ -159,10 +163,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to fetch bookings",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch bookings";
       return {
         success: false,
-        error: error.message || "Failed to fetch bookings",
+        error: message,
       };
     }
   },
@@ -184,10 +189,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to fetch booking details",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to fetch booking details";
       return {
         success: false,
-        error: error.message || "Failed to fetch booking details",
+        error: message,
       };
     }
   },
@@ -222,10 +228,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to update booking status",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update booking status";
       return {
         success: false,
-        error: error.message || "Failed to update booking status",
+        error: message,
       };
     }
   },
@@ -265,10 +272,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to check availability",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to check availability";
       return {
         success: false,
-        error: error.message || "Failed to check availability",
+        error: message,
       };
     }
   },
@@ -318,10 +326,11 @@ const bookingService = {
         success: false,
         error: response.error || "Failed to get price estimate",
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to get price estimate";
       return {
         success: false,
-        error: error.message || "Failed to get price estimate",
+        error: message,
       };
     }
   },

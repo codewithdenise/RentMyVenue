@@ -120,6 +120,10 @@ export interface Booking {
   status: "pending" | "confirmed" | "cancelled" | "completed";
   totalPrice: number;
   paymentStatus: "pending" | "paid" | "refunded";
+  paymentMethod: 'online' | 'venue';
+  guestCount: number;
+  specialRequests?: string;
+  transactionId?: string;
   createdAt: string;
 }
 

@@ -1,11 +1,14 @@
-import React, {
+import * as React from "react";
+import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 
 // Types
 export type UserRole = "user" | "vendor" | "admin";
@@ -119,12 +122,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const signIn = useCallback(
-    async (email: string, password: string, remember = false) => {
+    async (_email: string, password: string, remember = false) => {
       try {
         setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         // This would be an API call in production
-        const user = mockUsers.find((u) => u.email === email);
+        const user = mockUsers.find((u) => u.email === _email);
 
         if (user) {
           setState({
@@ -167,12 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const signUp = useCallback(
-    async (email: string, password: string, name: string, role: UserRole) => {
+    async (_email: string, password: string, name: string, role: UserRole) => {
       try {
         setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         // This would be an API call in production
-        const existingUser = mockUsers.find((u) => u.email === email);
+        const existingUser = mockUsers.find((u) => u.email === _email);
 
         if (existingUser) {
           setState((prev) => ({
@@ -186,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Create new user (mock)
         const newUser: User = {
           id: Math.random().toString(36).substring(2, 9),
-          email,
+          email: _email,
           name,
           role,
           avatarUrl: `https://i.pravatar.cc/150?u=${Math.random()}`,
@@ -235,8 +238,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       // This would be an API call in production
-      // For demo purposes, any 6-digit OTP will work
-      const isValid = otp.length === 6 && /^\d+$/.test(otp);
+      // For demo purposes, any 6-digit OTP will work for registered email
+      const mockUser = mockUsers.find((u) => u.email === email);
+      const isValid = mockUser && otp.length === 6 && /^\d+$/.test(otp);
 
       setState((prev) => ({ ...prev, isLoading: false }));
       return isValid;
@@ -255,7 +259,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       // This would be an API call in production
-      // For demo, we'll just pretend to send an OTP
+      // For demo, we'll just pretend to send an OTP to registered email
+      const mockUser = mockUsers.find((u) => u.email === email);
+      if (!mockUser) {
+        throw new Error("Email not found");
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setState((prev) => ({ ...prev, isLoading: false }));
@@ -285,11 +293,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const resetPassword = useCallback(async (token: string, password: string) => {
+  const resetPassword = useCallback(async (_token: string, password: string) => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       // This would be an API call in production
+      // Validate token format and password length for mock implementation
+      if (!_token.match(/^[A-Za-z0-9-_]+$/)) {
+        throw new Error("Invalid reset token");
+      }
+      if (password.length < 8) {
+        throw new Error("Password must be at least 8 characters");
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setState((prev) => ({ ...prev, isLoading: false }));

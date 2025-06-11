@@ -1,33 +1,36 @@
-import React, { useState } from "react";
+import * as React from "react";
+import { useState } from "react";
+
+import {
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  Mail,
+  Shield,
+  Sun,
+  Moon,
+  KeyRound,
+  ArrowLeft,
+} from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import authService from "@/services/authService";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
- import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Sun,
-  Moon,
-  Mail,
-  Lock,
-  Shield,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  KeyRound,
-  Building2,
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/hooks/useAuth";
+import authService from "@/services/authService";
+
 
 const AdminLogin: React.FC = () => {
   const { login, requestOtp, verifyOtp, logout, error, isLoading, clearError } =
@@ -52,13 +55,16 @@ const AdminLogin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     clearError();
+    setLocalError(null);
     try {
       // Request OTP for login (no extra role argument)
       const otpSent = await requestOtp(email, password, "login");
       if (otpSent) {
         setShowOtpForm(true);
       }
-    } catch (err) {}
+    } catch (err) {
+      setLocalError("An unexpected error occurred. Please try again.");
+    }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

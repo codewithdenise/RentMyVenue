@@ -8,3 +8,5 @@ tzdata==2025.2
 django-cors-headers
 razorpay
 requests
+PyMySQL==1.1.0  # Required for MySQL database in production
+python-dotenv==1.0.1  # For loading environment variables

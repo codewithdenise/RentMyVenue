@@ -1,7 +1,9 @@
-import React from "react";
+import * as React from "react";
+
+import { useAuth } from "@/hooks/useAuth";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import VendorDashboard from "@/pages/vendor/VendorDashboard";
-import { useAuth } from "@/hooks/useAuth";
+
 
 const SharedDashboard: React.FC = () => {
   const { user } = useAuth();

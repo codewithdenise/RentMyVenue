@@ -1,19 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import * as React from "react";
+
 import { Search, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import venueService from "@/services/venueService";
 import { Venue } from "@/types";
 
+
 const Index = () => {
   const navigate = useNavigate();
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = React.useState("");
 
-  const [featuredVenues, setFeaturedVenues] = useState<Venue[]>([]);
-  const [loadingFeatured, setLoadingFeatured] = useState(false);
-  const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
+  const [featuredVenues, setFeaturedVenues] = React.useState<Venue[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = React.useState(false);
+  const [errorFeatured, setErrorFeatured] = React.useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +27,11 @@ const Index = () => {
     navigate(`/venues${params.toString() ? "?" + params.toString() : ""}`);
   };
 
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchFeaturedVenues = async () => {
       setLoadingFeatured(true);
       setErrorFeatured(null);
@@ -52,7 +55,7 @@ const Index = () => {
     fetchFeaturedVenues();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const checkScroll = () => {
       if (carouselRef.current) {
         const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;

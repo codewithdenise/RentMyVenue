@@ -1,22 +1,25 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import * as React from "react";
+import { useState } from "react";
+
 import { Menu, X, Search, Sun, Moon, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Link, useNavigate } from "react-router-dom";
+
+import { AuthModalType } from "@/components/auth/AuthModals";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { AuthModalType } from "@/components/auth/AuthModals";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+
 
 // Props to accept the auth modal controls from parent
 interface NavbarProps {
@@ -29,8 +32,6 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
-
   // For backward compatibility if not provided
   const openAuthModal = (type: AuthModalType) => {
     if (onOpenAuthModal) {

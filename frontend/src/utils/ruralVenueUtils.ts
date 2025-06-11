@@ -41,8 +41,8 @@ export const formatIndianPrice = (price: number): string => {
 // Get venue by capacity range
 export const filterVenuesByCapacity = (
   venues: Venue[],
-  minCapacity: number = 0,
-  maxCapacity: number = Infinity,
+  minCapacity = 0,
+  maxCapacity = Infinity,
 ): Venue[] => {
   return venues.filter(
     (venue) =>
